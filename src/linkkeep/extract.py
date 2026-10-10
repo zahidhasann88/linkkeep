@@ -123,6 +123,7 @@ def extract_links(
     *,
     sort_query: bool = False,
     slash_policy: SlashPolicy = "keep",
+    include_fragments: bool = False,
 ) -> ExtractResult:
     """Extract and resolve every link of interest from ``html``.
 
@@ -181,10 +182,14 @@ def extract_links(
                 scheme = raw_str.split(":", 1)[0].lower() if ":" in raw_str else "other"
                 result.count_skip("scheme", scheme=scheme)
                 continue
+            absolute: str | None
             if raw_str.startswith("#"):
                 result.count_skip("fragment-only")
-                continue
-            absolute = resolve_url(effective_base, raw_str)
+                if not include_fragments or raw_str == "#":
+                    continue
+                absolute = effective_base.split("#", 1)[0] + raw_str
+            else:
+                absolute = resolve_url(effective_base, raw_str)
             if absolute is None:
                 result.count_skip("unresolvable")
                 continue

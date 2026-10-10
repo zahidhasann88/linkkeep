@@ -228,7 +228,7 @@ def test_markdown_and_text_keep_raw_link_text() -> None:
     data.issues = [data.issues[0].model_copy(update={"link_text": 'Say "hi" <b>now</b>'})]
     text = render(data, "text")
     assert '"Say "hi" <b>now</b>"' in text
-    assert "<b>now</b>" in render(data, "markdown")
+    assert "&lt;b&gt;now&lt;/b&gt;" in render(data, "markdown")
 
 
 def test_html_report_handles_a_clean_run() -> None:
@@ -419,7 +419,7 @@ def test_junit_clean_run_has_one_passing_case_per_suite() -> None:
     data = sample_report_data()
     data.issues = []
     root = ET.fromstring(render(data, "junit"))
-    assert root.attrib["tests"] == "0"
+    assert root.attrib["tests"] == "1"
     cases = root.findall(".//testcase")
     assert len(cases) == 1
     assert cases[0].find("skipped") is not None

@@ -67,7 +67,7 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - name: run tools/demo.py
-        run: python tools/demo.py --outdir "$RUNNER_TEMP/demo"
+        run: python tools/demo.py --save --outdir "$RUNNER_TEMP/demo"
       - name: check the demo output
         run: |
           test -s "$RUNNER_TEMP/demo/01-crawl.txt"

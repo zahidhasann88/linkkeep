@@ -562,7 +562,7 @@ def _row_to_run(row: sqlite3.Row) -> RunRecord:
         links=int(row["links"] or 0),
         checked=int(row["checked"] or 0),
         skipped_scheme=int(row["skipped"] or 0),
-        fragment_only=int(row["fragment_only"] or 0) if "fragment_only" in row else 0,
+        fragment_only=int(row["fragment_only"] or 0) if "fragment_only" in set(row.keys()) else 0,
         excluded=int(row["excluded"] or 0),
         robots_blocked=int(row["robots_blocked"] or 0),
         errors=int(row["errors"] or 0),

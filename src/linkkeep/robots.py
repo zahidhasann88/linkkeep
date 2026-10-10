@@ -8,6 +8,7 @@ convention and avoids false alarms from flaky hosts.
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from urllib.parse import urlsplit
 
@@ -39,6 +40,7 @@ class RobotsClient:
     fetcher: Fetcher
     user_agent: str
     enabled: bool = True
+    _locks: dict[str, asyncio.Lock] = field(default_factory=dict, repr=False)
     _cache: dict[str, Protego | None] = field(default_factory=dict, repr=False)
     _delays: dict[str, float | None] = field(default_factory=dict, repr=False)
     _sources: dict[str, str] = field(default_factory=dict, repr=False)
@@ -51,6 +53,11 @@ class RobotsClient:
         return f"{parts.scheme}://{parts.netloc}"
 
     async def _ensure_origin(self, origin: str) -> None:
+        lock = self._locks.setdefault(origin, asyncio.Lock())
+        async with lock:
+            await self._load_origin(origin)
+
+    async def _load_origin(self, origin: str) -> None:
         if origin in self._cache:
             return
         self._cache[origin] = None

@@ -96,7 +96,11 @@ async def test_external_links_are_checked_but_not_crawled() -> None:
     report, fetcher = await crawl(routes, allow_unknown=True, default_status=200)
     assert [p.url for p in report.pages] == [f"{SITE}/"]
     assert fetcher.count_for("https://other.test/a") == 1  # deduplicated, HEAD only
-    assert set(fetcher.urls_seen(method="GET")) == {f"{SITE}/", f"{SITE}/robots.txt"}
+    assert set(fetcher.urls_seen(method="GET")) == {
+        f"{SITE}/",
+        f"{SITE}/robots.txt",
+        "https://other.test/robots.txt",
+    }
     assert report.issues == []
 
 

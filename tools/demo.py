@@ -19,7 +19,6 @@ import argparse
 import contextlib
 import io
 import os
-import shutil
 import socket
 import sqlite3
 import sys
@@ -96,9 +95,7 @@ def main(argv: list[str] | None = None) -> int:
     outdir: Path | None = None
     if args.save:
         outdir = args.outdir
-        if outdir.exists():
-            shutil.rmtree(outdir)
-        outdir.mkdir(parents=True)
+        outdir.mkdir(parents=True, exist_ok=True)
     workdir = outdir or Path(tempfile.mkdtemp(prefix="linkkeep-demo-"))
     db = workdir / "demo.sqlite"
     if db.exists():
@@ -164,7 +161,7 @@ def pick_port(preferred: int) -> int:
 
 
 def _newest_run(db: Path) -> int:
-    with sqlite3.connect(db) as conn:
+    with closing(sqlite3.connect(db)) as conn:
         row = conn.execute("SELECT MAX(id) FROM runs").fetchone()
     return int(row[0]) if row and row[0] is not None else 1
 

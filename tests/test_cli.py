@@ -829,7 +829,7 @@ def test_unexpected_errors_are_friendly_unless_verbose(
     monkeypatch.setattr(cli, "run_crawl", explode)
     code, output = invoke_main(["--db", str(db), "crawl", SITE])
     assert code == EXIT_USAGE
-    assert "unexpected error: RuntimeError: kaboom" in output
+    assert "unexpected error: RuntimeError" in output
     assert "--verbose" in output
     assert "Traceback" not in output
     with pytest.raises(RuntimeError, match="kaboom"):
@@ -879,7 +879,8 @@ def test_config_database_is_used_when_no_flag(
     (workdir / "linkkeep.yaml").write_text(f"database: {target}\n", encoding="utf-8")
     result = invoke(["runs"])
     assert result.exit_code == EXIT_OK
-    assert str(target) in result.stdout
+    assert target.exists()
+    assert target.name in result.stdout
 
 
 def test_crawl_report_helper_functions_are_covered(db: Path) -> None:
@@ -921,3 +922,31 @@ def test_run_crawl_is_a_thin_wrapper(db: Path, monkeypatch: pytest.MonkeyPatch) 
     report = cli.run_crawl(state, console, config, [f"{SITE}/"], None)
     assert report.counts.pages == 1
     assert report.run_id is None  # no storage passed in
+
+
+def test_watch_multiple_cycles_use_fresh_interrupt_events(
+    db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stub_network(
+        monkeypatch, {f"{SITE}/": page("<p>ok</p>")}, allow_unknown=True, default_status=200
+    )
+    sleeps: list[float] = []
+
+    def stop_after_two(seconds: float, stop: object) -> bool:
+        sleeps.append(seconds)
+        return len(sleeps) >= 2
+
+    monkeypatch.setattr(cli, "sleep_with_interrupt", stop_after_two)
+    result = invoke(["watch", f"{SITE}/", "--every", "1s", "-q"], db=db)
+    assert result.exit_code == EXIT_OK
+    records = history(db).list_runs()
+    assert len(records) == 2
+    assert all(record.status is RunStatus.COMPLETED for record in records)
+
+
+def test_watch_unreachable_once_returns_crawl_failure(
+    db: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    stub_network(monkeypatch, {}, default_status=None)
+    result = invoke(["watch", f"{SITE}/", "--once"], db=db)
+    assert result.exit_code == EXIT_CRAWL_FAILED

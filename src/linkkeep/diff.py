@@ -165,6 +165,9 @@ def resolve_run_ids(
     storage: Any, requested_a: int | None, requested_b: int | None, *, site: str | None = None
 ) -> tuple[int, int]:
     """Pick the two most recent runs when no ids were given."""
+    if site is None:
+        latest = storage.get_run(requested_b) if requested_b is not None else storage.latest_run()
+        site = latest.site if latest is not None else None
     runs: list[RunRecord] = storage.list_runs(site=site, limit=200)
     if requested_a is not None and requested_b is not None:
         return requested_a, requested_b

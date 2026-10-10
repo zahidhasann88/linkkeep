@@ -294,14 +294,15 @@ issue.
 
 1. Update `CHANGELOG.md`: move `## Unreleased` entries under a new `## [<version>]` heading
    with the date, and add the comparison link at the bottom.
-2. Bump `__version__` in `src/linkkeep/__init__.py`. Tests assert the version string
+2. Bump the version in `pyproject.toml` and `__version__` in `src/linkkeep/__init__.py`. Tests assert the version string
    appears in `--version` output, and the reports print it.
 3. `make check && make build` - install the wheel in a clean venv and run
    `linkkeep --version` plus a real crawl against the fixture site.
 4. `git tag -s v<version> && git push origin v<version>` - `.github/workflows/release.yml`
-   builds and publishes via PyPI trusted publishing (OIDC, no token in repo secrets;
-   requires the `pypi` environment and the project's "pending publisher" to be set up).
-5. Publish the GitHub Release from the tag and paste the changelog section into it.
+   builds and creates the GitHub Release with distribution assets. PyPI publication uses
+   trusted publishing and requires the `pypi` environment, a matching publisher, and
+   the repository Actions variable `PUBLISH_TO_PYPI` set to `true`.
+5. Check every release job and verify the GitHub assets and PyPI installation.
 
 Breaking changes to the JSON report schema, the exit-code contract, the config file
 semantics or a stable issue code are `minor` bumps in v0.x, and the README's compatibility

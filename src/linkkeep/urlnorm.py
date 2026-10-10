@@ -150,9 +150,7 @@ class ParsedUrl:
 
     @property
     def origin(self) -> str:
-        if self.port and self.port != DEFAULT_PORTS.get(self.scheme):
-            return f"{self.scheme}://{self.host}:{self.port}"
-        return f"{self.scheme}://{self.host}"
+        return f"{self.scheme}://{_netloc(self.host, self.port, self.scheme)}"
 
     @property
     def without_fragment(self) -> str:
@@ -162,6 +160,8 @@ class ParsedUrl:
 
 
 def _netloc(host: str, port: int | None, scheme: str) -> str:
+    if ":" in host and not host.startswith("["):
+        host = f"[{host}]"
     if port is None or port == DEFAULT_PORTS.get(scheme):
         return host
     return f"{host}:{port}"
@@ -182,14 +182,17 @@ def _encode_host(host: str) -> str:
 
 def parse_url(url: str) -> ParsedUrl | None:
     """Parse an absolute http(s)-ish URL; returns ``None`` if there is no host."""
-    parts = urlsplit(url.strip())
+    try:
+        parts = urlsplit(url.strip())
+    except ValueError:
+        return None
     scheme = parts.scheme.lower()
     if not scheme:
         return None
     try:
         port = parts.port
     except ValueError:
-        port = None
+        return None
     try:
         host = _encode_host(parts.hostname or "")
     except ValueError:
@@ -240,9 +243,9 @@ def resolve_url(base: str, href: str) -> str | None:
         candidate = f"{parsed.scheme if parsed else 'https'}:{candidate}"
     try:
         joined = urljoin(base, candidate)
+        split = urlsplit(joined)
     except ValueError:
         return None
-    split = urlsplit(joined)
     if split.scheme not in {"http", "https"} or not split.netloc:
         return None
     return joined
@@ -263,7 +266,7 @@ def normalise_url(
     readability at call sites that explicitly do not care.
     """
     parsed = parse_url(url)
-    if parsed is None:
+    if parsed is None or parsed.scheme not in {"http", "https"}:
         return None
     path = parsed.path or "/"
     for name in tuple(index_names):

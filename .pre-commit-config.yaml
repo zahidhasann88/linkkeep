@@ -5,19 +5,19 @@ repos:
     hooks:
       - id: ruff-check
         name: ruff check
-        entry: .venv/bin/ruff check --fix --no-cache
+        entry: python -m ruff check --fix --no-cache
         language: system
         files: ^(src|tests|tools)/
         types: [python]
       - id: ruff-format
         name: ruff format
-        entry: .venv/bin/ruff format --no-cache
+        entry: python -m ruff format --no-cache
         language: system
         files: ^(src|tests|tools)/
         types: [python]
       - id: mypy
         name: mypy (src)
-        entry: .venv/bin/mypy
+        entry: python -m mypy
         language: system
         files: ^src/
         types: [python]

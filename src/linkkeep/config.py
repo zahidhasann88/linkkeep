@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_valida
 from linkkeep import __version__
 
 #: Edit this to your own GitHub location; it also appears in the User-Agent.
-REPO_URL = "https://github.com/YOUR-OWNER/linkkeep"
+REPO_URL = "https://github.com/zahidhasann88/linkkeep"
 
 CONFIG_FILENAMES: tuple[str, ...] = ("linkkeep.yaml", "linkkeep.yml", ".linkkeep.yaml")
 FailOn = Literal["error", "warning", "info", "never"]
@@ -51,8 +51,12 @@ class CrawlSection(_Section):
         default=None, ge=0, description="Maximum link depth from a seed (0 = seeds only)"
     )
     concurrency: int = Field(default=10, ge=1, le=200, description="Simultaneous requests")
-    rate: float = Field(default=5.0, gt=0, description="Requests per second, per host")
-    timeout: float = Field(default=15.0, gt=0, description="Per-request timeout in seconds")
+    rate: float = Field(
+        default=5.0, gt=0, allow_inf_nan=False, description="Requests per second, per host"
+    )
+    timeout: float = Field(
+        default=15.0, gt=0, allow_inf_nan=False, description="Per-request timeout in seconds"
+    )
     retries: int = Field(
         default=1, ge=0, le=5, description="Retries for transient errors (timeout, 5xx, 429)"
     )
@@ -192,6 +196,8 @@ class Config(_Section):
             "cookies": sorted(auth.get("cookies") or {}),
             "redacted": True,
         }
+        if data["watch"].get("notify_webhook"):
+            data["watch"]["notify_webhook"] = "***"
         return data
 
     def seed_urls(self) -> list[str]:
@@ -267,7 +273,7 @@ def read_yaml_config(path: Path) -> dict[str, Any]:
     try:
         raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
-        raise ConfigError(f"Could not parse {path}: {exc}") from exc
+        raise ConfigError(f"Could not parse {path}: invalid YAML syntax") from exc
     except OSError as exc:
         raise ConfigError(f"Could not read {path}: {exc}") from exc
     if raw is None:
@@ -417,7 +423,7 @@ def _compile_glob(text: str, original: str, cause: BaseException | None) -> re.P
 
 # --------------------------------------------------------------------------- template
 INIT_CONFIG_YAML = """\
-# Linkkeep configuration - https://github.com/YOUR-OWNER/linkkeep
+# Linkkeep configuration - https://github.com/zahidhasann88/linkkeep
 # Every key is optional; CLI flags always win over this file.
 # Structure: crawl (engine limits), rules (what counts as internal and what to
 # skip), detection (thresholds), auth (secrets), output, watch.
@@ -426,7 +432,7 @@ INIT_CONFIG_YAML = """\
 # site: https://example.com
 
 # Sent as User-Agent. Keep the URL so site owners can contact you.
-user_agent: "Linkkeep/0.1 (+https://github.com/YOUR-OWNER/linkkeep)"
+user_agent: "Linkkeep/0.1 (+https://github.com/zahidhasann88/linkkeep)"
 
 # SQLite history file. Defaults to the platform data directory
 # (~/.local/share/linkkeep/linkkeep.sqlite on Linux); LINKKEEP_HOME also works.

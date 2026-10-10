@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SITE: https://example.com
-      CACHE_DIR: ${{ runner.temp }}/linkkeep-cache
-      DB: ${{ runner.temp }}/linkkeep-cache/history.sqlite
+      CACHE_DIR: ${{ github.workspace }}/.linkkeep-cache
+      DB: ${{ github.workspace }}/.linkkeep-cache/history.sqlite
     steps:
       - name: Restore link history
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.CACHE_DIR }}
           key: linkkeep-${{ github.run_id }} # fresh key every run ...
@@ -55,7 +55,7 @@ jobs:
 
       - name: Report in the job summary and fail on new errors
         run: |
-          if [ -f "$DB" ] && [ -n "$(linkkeep --db "$DB" runs --json | tr -d ' \n[]')" ]; then
+          if [ "$(linkkeep --db "$DB" runs --json | python -c 'import json,sys; print(len(json.load(sys.stdin)))')" -ge 2 ]; then
             # `diff` writes NEW/FIXED/PERSISTING markdown and exits 1 when NEW findings
             # reach --fail-on (default: error).
             linkkeep --db "$DB" diff --format markdown >>"$GITHUB_STEP_SUMMARY"
@@ -82,3 +82,10 @@ jobs:
       #       "$SLACK_WEBHOOK_URL"
       #   env:
       #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Save history even when new issues fail the check
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: linkkeep-${{ github.run_id }}

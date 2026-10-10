@@ -236,7 +236,5 @@ def test_ports_are_kept_when_non_default() -> None:
     assert parsed.without_fragment == "https://site.test:8443/a"
 
 
-def test_invalid_port_is_tolerated() -> None:
-    parsed = parse_url("https://site.test:abc/a")
-    assert parsed is not None
-    assert parsed.port is None
+def test_invalid_port_is_rejected() -> None:
+    assert parse_url("https://site.test:abc/a") is None

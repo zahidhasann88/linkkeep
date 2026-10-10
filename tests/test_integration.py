@@ -197,9 +197,9 @@ def test_fragments_are_only_checked_when_asked(site: FixtureServer, db: Path) ->
         second = db.with_name("fragments.sqlite")
         crawl(other, second, "--check-fragments")
         found = [item for item in issues(second) if item["code"] == "missing_fragment"]
-        assert len(found) == 1
-        assert found[0]["target_url"].endswith("/blog/post-1#nope")
-        assert "nope" in found[0]["reason"]
+        assert len(found) == 2
+        assert {path_of(item["target_url"]) for item in found} == {"/blog/post-1#nope", "/#top"}
+        assert all("no id or name" in item["reason"] for item in found)
     assert code == 1
 
 

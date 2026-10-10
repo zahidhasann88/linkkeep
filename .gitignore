@@ -38,3 +38,12 @@ reports/
 
 # output of `make demo DEMO_ARGS=--save`
 /demo-output/
+/build-prompt.txt
+/after-build-report.txt
+/PUBLISHING.md
+/VERIFICATION.md
+.env.*
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm

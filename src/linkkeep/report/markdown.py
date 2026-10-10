@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import html
 from collections.abc import Sequence
+from urllib.parse import quote
 
 from linkkeep.models import Issue, IssueType, RunStatus, Severity
 from linkkeep.report import ReportData, describe_issue, shorten, since_text, stamp
@@ -29,7 +31,7 @@ EMOJI_BY_TYPE: dict[IssueType, str] = {
 
 
 def render(data: ReportData) -> str:
-    lines = [f"## Linkkeep: {data.run.site}", ""]
+    lines = [f"## Linkkeep: {escape(data.run.site)}", ""]
     lines += _summary(data)
     if data.issues:
         lines += ["", "### Issues", "", _table(data.issues)]
@@ -66,7 +68,7 @@ def _summary(data: ReportData) -> list[str]:
         (f"| :information_source: info | {data.counts_by_severity[Severity.INFO]} | | | |"),
     ]
     if run.notes:
-        lines += ["", "> [!NOTE]", f"> {run.notes}"]
+        lines += ["", "> [!NOTE]", f"> {escape(run.notes)}"]
     return lines
 
 
@@ -94,12 +96,12 @@ def _type_details(issue_type: IssueType, issues: list[Issue], data: ReportData) 
     for source_url, group in data.issues_by_source(issues).items():
         lines.append(f"- **from** {md_link(source_url)}")
         for issue in group:
-            text = f"  - {md_link(issue.target_url)} - {describe_issue(issue)}"
+            text = f"  - {md_link(issue.target_url)} - {escape(describe_issue(issue))}"
             if issue.link_text:
-                text += f", label {shorten(issue.link_text, 40)!r}".replace("'", "`")
+                text += f", label {escape(shorten(issue.link_text, 40))!r}".replace("'", "`")
             lines.append(text)
             if issue.reason and issue.status is None:
-                lines.append(f"    - {issue.reason}")
+                lines.append(f"    - {escape(issue.reason)}")
     lines += ["", "</details>", ""]
     return lines
 
@@ -130,11 +132,17 @@ def _diff_section(data: ReportData) -> str:
                 f"{since_text(item.since, now=data.generated_at)}, seen in {item.runs_seen} runs"
             )
     for note in diff.notes:
-        lines.append(f"- note: {note}")
+        lines.append(f"- note: {escape(note)}")
     return "\n".join(lines)
 
 
 def md_link(url: str | None) -> str:
     if not url:
         return "-"
-    return f"[`{shorten(url, 70)}`]({url})"
+    target = quote(url, safe=":/?#&=%+@,;-._~")
+    return f"[`{escape(shorten(url, 70))}`]({target})"
+
+
+def escape(value: str) -> str:
+    text = html.escape(value, quote=False).replace("|", "&#124;").replace("`", "&#96;")
+    return text.replace("[", "&#91;").replace("]", "&#93;").replace("\n", " ").replace("\r", " ")

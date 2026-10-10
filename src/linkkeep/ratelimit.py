@@ -42,6 +42,7 @@ class RateLimiter:
         self._clock: Clock = clock or time.monotonic
         self._sleep = sleep or asyncio.sleep
         self._buckets: dict[str, _Bucket] = {}
+        self._rates: dict[str, float] = {}
         self._locks: dict[str, asyncio.Lock] = {}
         self._guard = asyncio.Lock()
         self.total_wait_seconds = 0.0
@@ -59,9 +60,15 @@ class RateLimiter:
                 self._locks[key] = lock
             return lock
 
-    def _refill(self, bucket: _Bucket, now: float) -> _Bucket:
+    def set_delay(self, key: str, delay: float) -> None:
+        if delay > 0:
+            self._rates[key] = min(self.rate, 1.0 / delay)
+
+    def _refill(self, bucket: _Bucket, now: float, rate: float | None = None) -> _Bucket:
         elapsed = max(0.0, now - bucket.updated)
-        bucket.tokens = min(self.capacity, bucket.tokens + elapsed * self.rate)
+        bucket.tokens = min(
+            self.capacity, bucket.tokens + elapsed * (rate if rate is not None else self.rate)
+        )
         bucket.updated = now
         return bucket
 
@@ -76,12 +83,13 @@ class RateLimiter:
                 if bucket is None:
                     bucket = _Bucket(tokens=self.capacity, updated=now)
                     self._buckets[key] = bucket
-                self._refill(bucket, now)
+                rate = self._rates.get(key, self.rate)
+                self._refill(bucket, now, rate)
                 if bucket.tokens >= 1.0:
                     bucket.tokens -= 1.0
                     return waited
                 needed = 1.0 - bucket.tokens
-                delay = needed / self.rate
+                delay = needed / rate
                 await self._sleep(delay)
                 waited += delay
                 self.total_wait_seconds += delay

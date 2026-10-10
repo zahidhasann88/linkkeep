@@ -57,17 +57,16 @@ same information sorted by what it means for someone using the tool.
 - `linkkeep init` writes a commented `linkkeep.yaml` (`--force` to overwrite).
 - `linkkeep crawl URL...` with `--max-pages`, `--max-depth`, `--concurrency`, `--rate`,
   `--timeout`, `--include`, `--exclude`, `--sitemap`, `--check-fragments`,
-  `--ignore-robots`, `--ignore-status`, `--allow-private`, `--header`, `--cookie`,
-  `--fail-on`, `--format`, `--output`, `--json`, `--store/--no-store`, `--no-color`,
+  `--ignore-robots`, `--ignore-status`, `--allow-private`, `--fail-on`, `--format`, `--output`, `--store/--no-store`, `--no-color`,
   `--verbose`.
 - `linkkeep runs` - recent runs; `--site`, `--limit`, `--json`.
 - `linkkeep diff` - NEW / FIXED / PERSISTING plus "broken since" and a run count; takes
-  zero, one or two run ids; `--all-pages`, `--json`, and the same report flags.
+  zero, one or two run ids; `--site` and the same report flags.
 - `linkkeep report [RUN]` - re-render any stored run in any format, `--format html`
   produces a single self-contained file you can attach to a ticket.
 - `linkkeep watch URL --every 6h` - crawl-and-diff forever with `--once` and
   `--notify-webhook`; a failing webhook never breaks the loop.
-- `linkkeep prune --older-than 90d` (`--yes`, `--keep-last`, `--vacuum`).
+- `linkkeep prune --older-than 90d` (`--yes`, `--vacuum`).
 - Global `--config`, `--db`, `--no-color`, `-q/--quiet`, `-v/--verbose`, `--version`.
 
 **Storage** (`storage.py`)
@@ -87,8 +86,7 @@ same information sorted by what it means for someone using the tool.
   collapsible issue lists), `html` as one self-contained file with an inline
   type/severity/URL filter that works offline, `json` with a documented versioned schema
   (`schema_version: 1`), `junit` for CI that only speaks JUnit, and `none` to skip rendering.
-- `--format` accepts several values and `--output` accepts a directory, so one run can
-  produce all of them.
+- `--format` selects one format and `--output` writes a report file. Stored runs can be exported repeatedly in different formats.
 
 **Project**
 
@@ -106,10 +104,9 @@ same information sorted by what it means for someone using the tool.
   not report every page as slow.
 - An unset `auth` `env:VAR` drops that header (no blank `Authorization`) and warns about the
   variable name.
-- `ignore_status` accepts `404,429` or `400:404`; excluded statuses produce no issue anywhere,
-  not even as a redirect hop.
+- Repeat `--ignore-status` for each status to suppress broken-status findings. Other detectors remain active.
 - `redirect_temporary_permanent_internal` is the one finding that can legitimately become an
   error later: it is the "did you mean 301?" nudge, so it is `info` and never fails CI.
 
-[unreleased]: https://github.com/YOUR-OWNER/linkkeep/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/YOUR-OWNER/linkkeep/releases/tag/v0.1.0
+[unreleased]: https://github.com/zahidhasann88/linkkeep/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/zahidhasann88/linkkeep/releases/tag/v0.1.0

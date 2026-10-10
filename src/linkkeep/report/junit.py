@@ -21,7 +21,7 @@ from linkkeep.models import Issue, Severity
 from linkkeep.report import ReportData, chain_summary, describe_issue, iso
 
 #: Control codes XML 1.0 cannot represent (tab, LF and CR are the legal ones).
-_ILLEGAL_XML = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+_ILLEGAL_XML = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\ud800-\udfff\ufffe\uffff]")
 
 
 def clean(value: str) -> str:
@@ -55,9 +55,9 @@ def build_tree(data: ReportData) -> ET.Element:
         _attrs(
             {
                 "name": f"linkkeep {run.site}",
-                "tests": str(len(data.issues)),
+                "tests": str(max(1, len(data.issues))),
                 "failures": str(counts[Severity.ERROR] + counts[Severity.WARNING]),
-                "skipped": str(counts[Severity.INFO]),
+                "skipped": str(counts[Severity.INFO] if data.issues else 1),
                 "errors": "0",
                 "time": f"{data.duration_seconds:.3f}",
                 "timestamp": iso(run.started_at),
@@ -75,7 +75,7 @@ def build_tree(data: ReportData) -> ET.Element:
                     "name": source_url,
                     "tests": str(max(1, len(issues))),
                     "failures": str(failures),
-                    "skipped": str(skipped),
+                    "skipped": str(skipped if issues else 1),
                     "errors": "0",
                     "id": str(index),
                     "package": run.site,

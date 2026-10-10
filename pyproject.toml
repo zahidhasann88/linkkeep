@@ -9,7 +9,7 @@ description = "Crawl a website, find broken links and redirect problems, and kee
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "YOUR NAME" }]
+authors = [{ name = "Zahid Hasan", email = "jahidhasann67@gmail.com" }]
 keywords = ["link-checker", "crawler", "broken-links", "seo", "ci", "sqlite"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -29,7 +29,7 @@ dependencies = [
   "rich>=13.0",
   "httpx>=0.27",
   "selectolax>=0.3.21",
-  "pydantic>=2.7",
+  "pydantic>=2.7,<3",
   "pyyaml>=6.0",
   "protego>=0.3.1",
 ]
@@ -52,10 +52,10 @@ dev = [
 linkkeep = "linkkeep.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/YOUR-OWNER/linkkeep"
-Repository = "https://github.com/YOUR-OWNER/linkkeep"
-Issues = "https://github.com/YOUR-OWNER/linkkeep/issues"
-Changelog = "https://github.com/YOUR-OWNER/linkkeep/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/zahidhasann88/linkkeep"
+Repository = "https://github.com/zahidhasann88/linkkeep"
+Issues = "https://github.com/zahidhasann88/linkkeep/issues"
+Changelog = "https://github.com/zahidhasann88/linkkeep/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/linkkeep"]

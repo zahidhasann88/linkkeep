@@ -13,7 +13,7 @@
 site: https://example.com
 
 # Sent as User-Agent.  Keep the URL so site owners can find you; that is the whole point.
-user_agent: "Linkkeep/1.0 (+https://github.com/YOUR-OWNER/linkkeep)"
+user_agent: "Linkkeep/1.0 (+https://github.com/zahidhasann88/linkkeep)"
 
 # SQLite history.  Unset means the platform data directory
 # (~/.local/share/linkkeep/linkkeep.sqlite); $LINKKEEP_HOME also works.

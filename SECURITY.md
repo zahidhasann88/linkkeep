@@ -6,9 +6,9 @@ in full - including the parts that are a bad idea by design.
 
 ## Reporting a vulnerability
 
-Please use [GitHub's private vulnerability reporting](https://github.com/YOUR-OWNER/linkkeep/security/advisories/new)
+Please use [GitHub's private vulnerability reporting](https://github.com/zahidhasann88/linkkeep/security/advisories/new)
 rather than a public issue. If you cannot or do not want to use it, write to the maintainer
-address on the repository's security page.
+`jahidhasann67@gmail.com`.
 
 What we will do:
 
@@ -36,10 +36,10 @@ not post one publicly.
 
 ## Hardening notes for users
 
-- **Secrets.** `auth.headers`/`auth.cookies` accept `env:VAR`; values are resolved per request,
+- **Secrets.** `auth.headers`/`auth.cookies` accept `env:VAR`; values are resolved when a crawl starts,
   are never printed, and only *names* are stored with the run (`to_stored_dict` redacts). They
-  are still sent to whatever `--config` says and to the hosts you crawl: do not point a
-  credentialed config at a site with third-party links you trust less than your own. An unset
+  are sent only to exact seed origins. External links and cross-origin redirects do not
+  receive configured credentials. Choose seed origins carefully. An unset
   variable drops the header and warns, so nothing leaks downstream if CI forgets a secret.
 - **The database.** `linkkeep.sqlite` contains URLs of pages you may not have wanted recorded
   (admin paths, `?token=…` links). `prune --older-than` and `--vacuum` exist for a reason; on
@@ -76,3 +76,5 @@ This policy covers this repository's code, workflows and published distributions
 not cover the behaviour of the sites you crawl, your CI provider, or the security of
 `httpx`, `selectolax`, `protego`, `typer`, `rich`, `pydantic` or `pyyaml` - though Dependabot
 opens PRs here when those need updating, and you should take them.
+
+The DNS/private-address check is a basic guard, not a network sandbox: transport DNS resolution and proxies may differ from the preflight resolution. Isolate crawls of untrusted sites. URLs and page content are preserved in history and reports and can contain credentials independently of configured auth values.

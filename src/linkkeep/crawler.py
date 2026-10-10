@@ -26,7 +26,7 @@ from typing import Any
 
 from linkkeep.config import Config, ConfigError
 from linkkeep.extract import ExtractResult, extract_links, fragment_is_valid
-from linkkeep.fetcher import Fetcher, FetchResult
+from linkkeep.fetcher import Fetcher, FetchResult, HttpxFetcher
 from linkkeep.issues import (
     DetectionSettings,
     LinkContext,
@@ -173,6 +173,7 @@ class Crawler:
         self._anchors: dict[str, set[str]] = {}
         self._page_results: dict[str, FetchResult] = {}
         self._external_results: dict[str, FetchResult] = {}
+        self._external_locks: dict[str, asyncio.Lock] = {}
         self._fragment_checks: list[LinkObservation] = []
         self._links_checked_per_page: dict[str, int] = {}
         self._notes: list[str] = []
@@ -192,8 +193,11 @@ class Crawler:
         """Crawl every seed and return the report (never raises for network failures)."""
         urls = prepare_seeds(seeds)
         self._check_seeds_are_allowed(urls)
+        if isinstance(self.fetcher, HttpxFetcher):
+            self.fetcher.allow_private = self.config.rules.allow_private
+            self.fetcher.set_auth_origins(urls)
         report = CrawlReport(
-            site=site or self.config.site or urls[0],
+            site=site or urls[0],
             seeds=list(urls),
             started_at=utcnow(),
             config=self.config.to_stored_dict(),
@@ -334,6 +338,13 @@ class Crawler:
                 )
             )
             self.counts.robots_blocked += 1
+            self._add_issues(
+                [
+                    detect_robots_block(
+                        source_url=entry.source_url, target_url=url, element="page", link_text=None
+                    )
+                ]
+            )
             return
         await self._respect_crawl_delay(url)
         result = await self.fetcher.fetch(url, method="GET", want_body=True)
@@ -387,6 +398,7 @@ class Crawler:
             page_result.final_url or page_url,
             sort_query=self.config.rules.url_sort_query,
             slash_policy=self.config.rules.url_trailing_slash,
+            include_fragments=self.config.rules.check_fragments,
         )
         self._anchors[canonical_target(page_result.final_url or page_url)] = extracted.anchors
         page = self._pages.get(page_url)
@@ -498,6 +510,24 @@ class Crawler:
             )
             self._observations.append(observation)
             return
+        decision = await self._robots_decision(observation.target_url)
+        if not decision.allowed:
+            self.counts.robots_blocked += 1
+            observation.checked = False
+            observation.note = "blocked by robots.txt"
+            self._observations.append(observation)
+            self._add_issues(
+                [
+                    detect_robots_block(
+                        source_url=observation.source_url,
+                        target_url=observation.target_url,
+                        element=observation.element,
+                        link_text=observation.link_text,
+                    )
+                ]
+            )
+            return
+        await self._respect_crawl_delay(observation.target_url)
         result = await self._check_external(observation.target_url)
         observation.result = result
         self._links_checked_per_page[observation.source_url] = (
@@ -520,11 +550,13 @@ class Crawler:
         )
 
     async def _check_external(self, url: str) -> FetchResult:
-        cached = self._external_results.get(url)
-        if cached is None:
-            cached = await self.fetcher.check_link(url)
-            self._external_results[url] = cached
-        return cached
+        lock = self._external_locks.setdefault(url, asyncio.Lock())
+        async with lock:
+            cached = self._external_results.get(url)
+            if cached is None:
+                cached = await self.fetcher.check_link(url)
+                self._external_results[url] = cached
+            return cached
 
     def _is_private(self, url: str) -> bool:
         if self.config.rules.allow_private:
@@ -543,7 +575,12 @@ class Crawler:
         delay = await self._robots.crawl_delay(url)
         if delay:
             self._log(f"waiting for robots.txt Crawl-delay: {delay}s")
-            await asyncio.sleep(min(float(delay), 60.0))
+            limiter = getattr(self.fetcher, "limiter", None)
+            parsed = parse_url(url)
+            if limiter is not None and parsed is not None:
+                limiter.set_delay(parsed.host, float(delay))
+            else:
+                await asyncio.sleep(float(delay))
 
     def _flag(self, message: str) -> None:
         if message not in self._flags:
@@ -575,8 +612,7 @@ class Crawler:
         parsed = parse_url(seed)
         if parsed is None:
             return []
-        port = f":{parsed.port}" if parsed.port else ""
-        origin = f"{parsed.scheme}://{parsed.host}{port}"
+        origin = parsed.origin
         candidates = [f"{origin}/sitemap.xml"]
         for declared in await self._robots.sitemaps(seed):
             if declared not in candidates:
@@ -585,6 +621,8 @@ class Crawler:
 
     async def _read_sitemap(self, url: str, *, depth: int) -> list[str]:
         """Read a sitemap (or one level of sitemap index) and return normalised URLs."""
+        if self._is_private(url) or not self._filter.allows(url):
+            return []
         result = await self.fetcher.fetch(url, method="GET", want_body=True)
         if (
             result.error is not None
@@ -627,7 +665,6 @@ class Crawler:
         if self.storage is None or self._run_id is None:
             return
         self._finalise_links()
-        self._run_fragment_checks()
         self._flushed = self.counts.pages
         await asyncio.to_thread(
             self.storage.write_from_thread,
@@ -727,7 +764,11 @@ class Crawler:
             if not fragment or not fragment_is_valid(fragment):
                 continue
             page_result = self._page_results.get(observation.target_url)
-            if page_result is None:
+            if (
+                page_result is None
+                or page_result.status is None
+                or not 200 <= page_result.status < 300
+            ):
                 continue
             anchors = self._anchors.get(
                 canonical_target(page_result.final_url or observation.target_url)

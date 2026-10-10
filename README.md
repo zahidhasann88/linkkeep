@@ -25,12 +25,14 @@ Existing link checkers cover part of this, and are great, but in practice you wa
 * **redirect intelligence** — loops, chains that never end, `https` pages that redirect
   down to `http`, temporary redirects that should be permanent;
 * **politeness by default** — robots.txt, per-host rate limits, an honest User-Agent;
-* **no accounts, no SaaS** — one binary, one SQLite file, runs in a minute in CI.
+* **local history** — a Python CLI and a SQLite file, without a hosted service.
 
 Linkkeep is that tool: a single dependency-light CLI you can point at a staging site, run
 weekly in GitHub Actions, or call from Python.
 
 ## Install
+
+Until the first PyPI release, install from this checkout or a GitHub release wheel.
 
 ```bash
 pipx install linkkeep          # recommended: isolated CLI on PATH
@@ -41,7 +43,7 @@ pip install linkkeep           # into the current environment
 From a checkout (hacking on it):
 
 ```bash
-git clone https://github.com/YOUR-OWNER/linkkeep && cd linkkeep
+git clone https://github.com/zahidhasann88/linkkeep && cd linkkeep
 make install     # creates .venv, installs the package + dev tools, installs pre-commit
 make test        # the whole suite, no network access required
 make demo        # crawls the bundled demo site with the real CLI
@@ -74,8 +76,8 @@ Here is actual output from `make demo`, which serves a deliberately messy site o
 ```console
 $ linkkeep crawl http://127.0.0.1:8077/ --allow-private --check-fragments --sitemap --slow-ms 300
 ╭──────────────────────────────── run #1 completed ─────────────────────────────────╮
-│ 16 errors, 1 warning, 3 info                                                      │
-│ http://127.0.0.1:8077/  32 pages, 107/108 links checked, 4 non-http skipped, 8.4s │
+│ 16 errors, 2 warnings, 3 info                                                      │
+│ http://127.0.0.1:8077/  32 pages, 108/109 links checked, 4 non-http skipped, 8.4s │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 ==============================================================================
 Linkkeep 0.1.0 - run #1 - http://127.0.0.1:8077/
@@ -83,7 +85,7 @@ Linkkeep 0.1.0 - run #1 - http://127.0.0.1:8077/
 status     completed   finished 2026-10-10 09:12
 notes      sitemap added 5 URL(s)
 
-16 errors, 1 warning, 3 info
+16 errors, 2 warnings, 3 info
 pages      32 crawled (1 blocked by robots)
 links      108 found, 107 checked, 4 non-http skipped
 by type    blocked_by_robots=1, broken=13, missing_fragment=1, redirect_loop=2,
@@ -128,9 +130,9 @@ needed only because the demo site lives on loopback; see
 ```console
 $ linkkeep runs
 run  site                    started           status     pages  checked  errors  warn  info
-  1  http://127.0.0.1:8077/  2026-10-10 09:12  completed     32      107      16     1     3
-  2  http://127.0.0.1:8077/  2026-10-10 09:12  completed     32      107      15     1     3
-  3  http://127.0.0.1:8077/  2026-10-10 09:12  completed     31      111       6     0     2
+  1  http://127.0.0.1:8077/  2026-10-10 09:12  completed     32      107      16     2     3
+  2  http://127.0.0.1:8077/  2026-10-10 09:12  completed     32      107      15     2     3
+  3  http://127.0.0.1:8077/  2026-10-10 09:12  completed     31      111       6     1     2
 3 run(s) in ./demo-output/demo.sqlite
 ```
 
@@ -139,7 +141,7 @@ groups every finding as `NEW`, `FIXED` or `PERSISTING`:
 
 ```console
 $ linkkeep diff -q
-http://127.0.0.1:8077/: 0 new, 11 fixed, 8 persisting
+http://127.0.0.1:8077/: 0 new, 11 fixed, 9 persisting
 
 $ linkkeep diff
 ...
@@ -154,7 +156,7 @@ FIXED (11) - problems that are gone now
   [warning] missing_fragment: http://127.0.0.1:8077/blog/post-1#nope (no id or name 'nope' on the
 target page)
       from http://127.0.0.1:8077/
-PERSISTING (8) - still broken
+PERSISTING (9) - still broken
   [error] unreachable: https://partner.invalid/docs (DNS failure: ConnectError: [Errno -2] Name or
 service not known)
       from http://127.0.0.1:8077/
@@ -165,7 +167,7 @@ service not known)
 [exit code: 0]
 ```
 
-Zero new problems, so the exit code is `0`. A *new* error would make it `1` and fail CI.
+The exact counts and timings vary by platform and response timing. Zero new problems means the exit code is `0`. A *new* error would make it `1` and fail CI.
 Identity across runs is a stable fingerprint (`type + source page + target URL`), so a
 link that changes from 404 to 500 is reported as PERSISTING, not as two separate
 problems — and `broken since` tells you how long you have been ignoring it.
@@ -243,8 +245,8 @@ command exit `1` if any finding is at or above that level; `never` disables fail
 | `slow` | info | response time above `detection.slow_ms` (5000) | speed it up, or raise the threshold |
 | `blocked_by_robots` | info | a link we could not check because robots.txt disallows it | nothing — it is a note about coverage |
 
-Severity is a property of the code, so `--fail-on warning` catches mixed content and slow
-drift too, and `--fail-on info` catches everything.
+Severity is a property of the code, so `--fail-on warning` catches mixed content and redirect
+chains too, and `--fail-on info` catches everything.
 
 Each finding records: the **source page** it was seen on, the **element and attribute**
 that carried it (`<a href>`, `<img src>`, `srcset`, …) and the **link text**, the
@@ -264,7 +266,7 @@ sets `crawl.rate` does not reset your other crawl defaults.
 
 ```yaml
 site: https://example.com
-user_agent: "Linkkeep/0.1 (+https://github.com/YOUR-OWNER/linkkeep)"
+user_agent: "Linkkeep/0.1 (+https://github.com/zahidhasann88/linkkeep)"
 database: ~/.local/share/linkkeep/linkkeep.sqlite
 respect_crawl_delay: true
 
@@ -281,7 +283,7 @@ crawl:
 rules:
   include_subdomains: false
   include: []              # e.g. ["glob:https://example.com/blog/**"]
-  exclude: ["re:/\\.(pdf|zip|png|jpg|css|js)$"]
+  exclude: ['re:\.(pdf|zip|png|jpg|css|js)$']
   ignore_status: [999]
   check_fragments: false
   sitemap: false
@@ -328,9 +330,11 @@ URL must match it), then `exclude` removes. Excluded links are still *recorded* 
 
 ### Secrets
 
+Configured headers and cookies are sent only to the exact seed origins (scheme, host and port). External links and cross-origin redirects receive no configured credentials. Add another explicit seed only when you trust that origin with the same credentials.
+
 `auth.headers` / `auth.cookies` values may be literal or `env:VAR`. Values are resolved
-when the request is built and are **never** printed, logged, or written to the database;
-only the header/cookie *names* are stored with the run. Reports and tracebacks redact them.
+when a crawl starts and are **never** printed, logged, or written to the database;
+only the header/cookie *names* are stored with the run. Configured auth values are removed from stored configuration and fetch errors. URLs and page content may still contain secrets; review reports before sharing them.
 Use `LINKKEEP_*` variables and let CI provide them.
 
 An entry whose `env:VAR` is unset is **dropped** (no blank `Authorization` header is sent)
@@ -391,11 +395,11 @@ jobs:
   links:
     runs-on: ubuntu-latest
     env:
-      DB: ${{ runner.temp }}/linkkeep-cache/history.sqlite
+      DB: ${{ github.workspace }}/.linkkeep-cache/history.sqlite
     steps:
       - uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/linkkeep-cache
+          path: ${{ github.workspace }}/.linkkeep-cache
           key: linkkeep-${{ github.run_id }}      # fresh key each run...
           restore-keys: linkkeep-                 # ...restored from the previous run
       - uses: actions/setup-python@v5
@@ -406,7 +410,7 @@ jobs:
         run: linkkeep --db "$DB" crawl https://example.com --fail-on never --format json --output report.json
       - name: report to the job summary, fail on NEW errors
         run: |
-          if [ -f "$DB" ]; then
+          if [ "$(linkkeep --db "$DB" runs --json | python -c 'import json,sys; print(len(json.load(sys.stdin)))')" -ge 2 ]; then
             linkkeep --db "$DB" diff --format markdown >> "$GITHUB_STEP_SUMMARY"
           else
             echo "first crawl: nothing to compare against yet" >> "$GITHUB_STEP_SUMMARY"
@@ -448,7 +452,7 @@ linkkeep crawl https://example.com --format junit --output linkkeep.xml --fail-o
 * **Max 1000 internal pages** per run, no depth limit, and HTML bodies are only read up to
   2 MB (the fetch still reports the status; `truncated` is noted).
 * **User-Agent** identifies the tool and a contact URL:
-  `Linkkeep/0.1.0 (+https://github.com/YOUR-OWNER/linkkeep)`. Change it, don't hide it.
+  `Linkkeep/0.1.0 (+https://github.com/zahidhasann88/linkkeep)`. Change it, don't hide it.
 * External links are checked with `HEAD`, falling back to `GET` when `HEAD` is rejected —
   and never crawled.
 * **Ctrl+C** once = finish in-flight requests, flush what we have to the database, mark the
@@ -572,6 +576,9 @@ context-manager) to feed the crawler from a cache, a browser session or a test d
 
 ## Limitations in v0.1
 
+* The private-network guard checks literal hosts and DNS results before each request and redirect. DNS is resolved again by the HTTP transport, so this is not a complete defense against DNS rebinding or proxies. Use an isolated network for untrusted crawls.
+* Registrable-host matching uses a small built-in suffix list, not the full Public Suffix List. Be cautious with `--include-subdomains` on shared hosting domains.
+
 * **No JavaScript rendering.** Links that only exist after a script runs (SPAs, infinite
   scroll, `<a>` built by a framework) are invisible; we parse the HTML the server returned.
   This is the single biggest gap and the main reason `sitemap` exists.
@@ -581,7 +588,7 @@ context-manager) to feed the crawler from a cache, a browser session or a test d
   real URL, and adding an element to `extract.py` is a two-line change with a test).
 * `POST`-only flows, forms, and authenticated multi-step journeys are out of scope;
   `auth.headers` gets you into protected pages, nothing more.
-* Fragment checking (`--check-fragments`) compares against `id`/`name` attributes on the
+* Fragment checking (`--check-fragments`) compares supported named anchors against `id`/`name` attributes on the
   fetched HTML; it cannot see anchors created by scripts.
 * One process per run: the rate limiter is per-process, so two concurrent Linkkeep runs on
   the same host each get their own 5 req/s.
@@ -641,12 +648,26 @@ Made without asking, and worth knowing about:
   render a report it built itself).
 * `crawl` records findings even with `--no-store`, but `diff` and *broken since* then have
   nothing to compare against - storing is the default because the history is the product.
-* `robots.txt` is respected for crawling decisions; external links are still status-checked
-  (a `403` on an off-site link is our problem to report, not theirs to hide).
+* `robots.txt` is respected for both internal crawling and external status checks.
 * The seed URL in the run record is the normalised first seed, so `--site` matching works
   after a redirect from `http://` or a trailing-slash difference.
 
 ## Development
+
+On Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m ruff check src tests tools
+.\.venv\Scripts\python.exe -m ruff format --check src tests tools
+.\.venv\Scripts\python.exe -m mypy
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe tools/demo.py --save
+.\.venv\Scripts\python.exe -m build
+```
+
+Activate the virtual environment before running the local pre-commit hooks.
 
 ```bash
 make install     # venv + dev dependencies + pre-commit hooks
@@ -670,5 +691,4 @@ the [changelog](CHANGELOG.md).
 
 ## License
 
-MIT — see [LICENSE](LICENSE). `YOUR NAME` in that file is a placeholder you should edit
-before publishing.
+MIT — see [LICENSE](LICENSE). Copyright 2026 Zahid Hasan.

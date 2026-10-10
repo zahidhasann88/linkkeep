@@ -12,9 +12,10 @@ from __future__ import annotations
 import abc
 import asyncio
 import os
+import socket
 import ssl
 import time
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Awaitable, Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Literal
 from urllib.parse import urljoin
@@ -23,6 +24,7 @@ import httpx
 
 from linkkeep.models import RedirectHop
 from linkkeep.ratelimit import RateLimiter
+from linkkeep.urlnorm import is_private_host
 
 Method = Literal["GET", "HEAD"]
 
@@ -223,7 +225,16 @@ class HttpxFetcher(Fetcher):
         retry_statuses: Iterable[int] = RETRY_STATUSES,
         clock: Callable[[], float] = time.monotonic,
         transport: httpx.AsyncBaseTransport | None = None,
+        allow_private: bool = True,
+        auth_origins: Iterable[str] | None = None,
+        resolver: Callable[[str, int], Awaitable[list[str]]] | None = None,
     ) -> None:
+        self.allow_private = allow_private
+        self._auth_origins = (
+            {_origin(url) for url in auth_origins} if auth_origins is not None else None
+        )
+        self._auth_headers = {name.lower() for name in headers or {}}
+        self._resolver = resolver or _resolve_addresses
         self.timeout = timeout
         self.max_hops = max_hops
         self.max_bytes = max_bytes
@@ -235,6 +246,11 @@ class HttpxFetcher(Fetcher):
         merged.update(
             {name: resolve_env_value(str(value)) for name, value in dict(headers or {}).items()}
         )
+        self._secret_values = sorted(
+            {value for value in [*merged.values(), *(cookies or {}).values()] if value},
+            key=len,
+            reverse=True,
+        )
         self._client = httpx.AsyncClient(
             timeout=httpx.Timeout(timeout, connect=min(timeout, 10.0)),
             follow_redirects=False,
@@ -244,6 +260,9 @@ class HttpxFetcher(Fetcher):
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
             transport=transport,
         )
+
+    def set_auth_origins(self, urls: Iterable[str]) -> None:
+        self._auth_origins = {_origin(url) for url in urls}
 
     @property
     def client(self) -> httpx.AsyncClient:
@@ -307,6 +326,11 @@ class HttpxFetcher(Fetcher):
         content_type: str | None = None
 
         for _ in range(max_hops + 1):
+            blocked = await self._blocked_target(current)
+            if blocked is not None:
+                return FetchResult(
+                    url=url, method=method, final_url=current, chain=chain, error=blocked
+                )
             stats.waited += await self._limiter.acquire(_host_of(current))
             began = self._clock()
             try:
@@ -322,14 +346,14 @@ class HttpxFetcher(Fetcher):
                     final_url=current,
                     headers=headers,
                     chain=chain,
-                    error=classify_exception(exc),
+                    error=self._safe_error(exc),
                 )
             stats.network += self._clock() - began
             location = headers.get("location")
             chain.append(RedirectHop(url=current, status=status, location=location))
             content_type = headers.get("content-type")
             if status in REDIRECT_STATUSES and location:
-                nxt = urljoin(current, location)
+                nxt = str(httpx.URL(urljoin(current, location)).copy_with(fragment=None))
                 if nxt in seen or nxt == current:
                     return FetchResult(
                         url=url,
@@ -401,6 +425,43 @@ class HttpxFetcher(Fetcher):
             ),
         )
 
+    def _safe_error(self, exc: BaseException) -> FetchError:
+        error = classify_exception(exc)
+        detail = error.detail
+        for value in self._secret_values:
+            detail = detail.replace(value, "***")
+        return FetchError(error.kind, detail)
+
+    async def _blocked_target(self, url: str) -> FetchError | None:
+        try:
+            target = httpx.URL(url)
+        except httpx.InvalidURL:
+            return FetchError(ERROR_OTHER, "invalid request URL")
+        if target.scheme not in {"http", "https"} or not target.host:
+            return FetchError(ERROR_OTHER, "only HTTP and HTTPS targets are supported")
+        if target.host.endswith(".invalid") or target.host == "invalid":
+            return FetchError(ERROR_DNS, "reserved invalid hostname")
+        if self.allow_private:
+            return None
+        if is_private_host(target.host):
+            return FetchError(
+                ERROR_OTHER, "private or loopback target blocked (use --allow-private)"
+            )
+        try:
+            addresses = await asyncio.wait_for(
+                self._resolver(
+                    target.host, target.port or (443 if target.scheme == "https" else 80)
+                ),
+                timeout=self.timeout,
+            )
+        except TimeoutError:
+            return FetchError(ERROR_TIMEOUT, "DNS resolution timed out")
+        except OSError:
+            return FetchError(ERROR_DNS, "DNS resolution failed")
+        if not addresses or any(is_private_host(address) for address in addresses):
+            return FetchError(ERROR_OTHER, "private DNS address blocked (use --allow-private)")
+        return None
+
     def _max_bytes_text(self) -> str:
         return f"{self.max_bytes / 1_000_000:.1f} MB"
 
@@ -408,6 +469,10 @@ class HttpxFetcher(Fetcher):
         self, url: str, *, method: Method, want_body: bool
     ) -> tuple[int | None, Mapping[str, str], bytes | None, int | None, bool]:
         request = self._client.build_request(method, url)
+        if self._auth_origins is not None and _origin(url) not in self._auth_origins:
+            for name in self._auth_headers | {"cookie", "authorization"}:
+                if name not in {"user-agent", "accept"}:
+                    request.headers.pop(name, None)
         response = await self._client.send(request, stream=True)
         try:
             read_body = (
@@ -460,3 +525,16 @@ def _host_of(url: str) -> str:
         return (httpx.URL(url).host or "").lower()
     except httpx.InvalidURL:
         return url
+
+
+def _origin(url: str) -> tuple[str, str, int | None]:
+    parsed = httpx.URL(url)
+    return parsed.scheme, parsed.host, parsed.port
+
+
+async def _resolve_addresses(host: str, port: int) -> list[str]:
+    # .invalid is reserved and never needs a DNS request.
+    if host.endswith(".invalid") or host == "invalid":
+        raise OSError("reserved invalid hostname")
+    records = await asyncio.get_running_loop().getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    return [str(record[4][0]) for record in records]

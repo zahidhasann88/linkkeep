@@ -41,7 +41,7 @@ from linkkeep.config import (
     parse_duration,
     read_yaml_config,
 )
-from linkkeep.crawler import Crawler, CrawlReport
+from linkkeep.crawler import Crawler, CrawlReport, prepare_seeds
 from linkkeep.diff import DiffResult, describe_diff, diff_runs, resolve_run_ids
 from linkkeep.fetcher import HttpxFetcher
 from linkkeep.models import Counts, Issue, RunRecord, RunStatus, Severity
@@ -260,6 +260,7 @@ def crawl(
         _validate_format(output_format)
         overrides.setdefault("output", {})["format"] = output_format
     config = load_config(state, overrides)
+    console = state.console()
     if config.rules.ignore_robots:
         console.print("[yellow]warning:[/] robots.txt is being ignored (--ignore-robots). Be kind to this host.")
     for note in config.unresolved_auth():
@@ -348,6 +349,7 @@ def diff(
     if fail_on is not None:
         overrides["output"] = {"fail_on": _validate_fail_on(fail_on)}
     config = load_config(state, overrides)
+    console = state.console()
     storage = open_storage(state, config)
     try:
         first, second = resolve_run_ids(storage, run_a, run_b, site=site)
@@ -426,7 +428,7 @@ def report(
 def watch(
     ctx: typer.Context,
     url: list[str] = typer.Argument(None, help="Seed URL(s)."),
-    every: str = typer.Option("6h", "--every", help="Interval between crawls, e.g. 30m, 6h, 1d."),
+    every: str | None = typer.Option(None, "--every", help="Interval between crawls, e.g. 30m, 6h, 1d."),
     notify_webhook: str | None = typer.Option(None, "--notify-webhook", help="POST a JSON summary when NEW issues appear."),
     max_pages: int | None = typer.Option(None, "--max-pages", min=1, help="Maximum internal pages per crawl."),
     max_depth: int | None = typer.Option(None, "--max-depth", min=0, help="Maximum link depth (default: unlimited)."),
@@ -458,7 +460,6 @@ def watch(
     state = _state(ctx)
     _apply_style_flags(state, no_color=no_color, quiet=quiet, verbose=verbose)
     console = state.console()
-    interval = parse_duration(every)
     flags = CrawlFlags(
         max_pages=max_pages, max_depth=max_depth, concurrency=concurrency, rate=rate, timeout=timeout,
         retries=retries, include=list(include), exclude=list(exclude), sitemap=sitemap,
@@ -471,8 +472,9 @@ def watch(
         _validate_format(output_format)
         overrides.setdefault("output", {})["format"] = output_format
     if fail_on is not None:
-        overrides["output"]["fail_on"] = _validate_fail_on(fail_on)
+        overrides.setdefault("output", {})["fail_on"] = _validate_fail_on(fail_on)
     config = load_config(state, overrides)
+    console = state.console()
     if config.rules.ignore_robots:
         console.print("[yellow]warning:[/] robots.txt is being ignored (--ignore-robots). Be kind to this host.")
     seeds = list(url or []) or config.seed_urls()
@@ -480,6 +482,8 @@ def watch(
         raise ConfigError("no seed URL given: `linkkeep watch https://example.com` or set `site:` in linkkeep.yaml")
     for note in config.unresolved_auth():
         console.print(f"[yellow]warning:[/] {note} - requests will be sent without it")
+    interval = parse_duration(every or config.watch.every)
+    notify_webhook = notify_webhook or config.watch.notify_webhook
     storage = open_storage(state, config)
     storage.mark_stale_runs_interrupted()
     threshold = config.output.fail_on
@@ -491,6 +495,10 @@ def watch(
         "For long-lived scheduling prefer cron or a CI schedule."
     )
     while True:
+        if stop.is_set():
+            break
+        stop = asyncio.Event()
+        install_signal_handlers(stop, console)
         started = time.time()
         report_ = run_crawl(state, console, config, seeds, storage, interrupt=stop)
         if report_.run_id is None:  # pragma: no cover - watch always stores
@@ -526,6 +534,8 @@ def watch(
                 post_webhook(notify_webhook, result, report_, config)
             if any(reaches(issue, threshold) for issue in result.new):
                 worst = EXIT_ISSUES
+        if report_.status is RunStatus.FAILED:
+            worst = EXIT_CRAWL_FAILED
         if once:
             break
         if sleep_with_interrupt(max(1.0, interval - (time.time() - started)), stop):
@@ -575,6 +585,9 @@ def load_config(state: Globals, overrides: dict[str, Any]) -> Config:
             raise ConfigError(f"config file not found: {path}")
         data = read_yaml_config(path)
     config = Config.from_dict(deep_merge(data, overrides))
+    state.no_color = state.no_color or not config.output.color
+    state.quiet = state.quiet or config.output.quiet
+    state.verbose = state.verbose or config.output.verbose
     if state.db is not None:
         config = config.with_overrides({"database": str(state.db)})
     return config
@@ -619,6 +632,8 @@ def run_crawl(
         headers=config.safe_headers(),
         cookies=config.safe_cookies(),
         limiter=limiter,
+        allow_private=config.rules.allow_private,
+        auth_origins=prepare_seeds(seeds),
     )
     crawler = Crawler(
         config,
@@ -627,10 +642,11 @@ def run_crawl(
         interrupt=stop,
         log=(lambda message: console.print(f"[dim]{message}[/]")) if state.verbose else None,
     )
-    try:
-        report = asyncio.run(crawler.run(seeds))
-    finally:
-        _aclose(fetcher)
+    async def execute() -> CrawlReport:
+        async with fetcher:
+            return await crawler.run(seeds)
+
+    report = asyncio.run(execute())
     if state.verbose:
         console.print(f"[dim]waited {limiter.total_wait_seconds:.1f}s for rate limits ({limiter.wait_count} sleeps)[/]")
     return report
@@ -816,7 +832,7 @@ def main(argv: list[str] | None = None) -> None:
         if chatty:
             raise
         console = Console(stderr=True)
-        console.print(f"[red]unexpected error:[/] {type(exc).__name__}: {exc}")
+        console.print(f"[red]unexpected error:[/] {type(exc).__name__}")
         console.print(f"re-run with --verbose for the traceback, then please report it at {REPO_URL}/issues")
         sys.exit(EXIT_USAGE)
     finally:
