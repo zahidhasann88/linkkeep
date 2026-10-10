@@ -300,7 +300,7 @@ def sample_run(*, run_id: int = 42, status: RunStatus = RunStatus.COMPLETED) -> 
         counts=COUNTS,
         config={
             "site": SITE,
-            "user_agent": "Linkkeep/0.1.0 (+https://github.com/YOUR-OWNER/linkkeep)",
+            "user_agent": "Linkkeep/0.1.0 (+https://example.test/linkkeep)",
             "crawl": {"max_pages": 1000, "concurrency": 10, "rate": 5.0, "timeout": 15.0},
             "rules": {"include": [], "exclude": ["/admin/"], "ignore_status": [999]},
             "auth": {"headers": ["Authorization"], "cookies": [], "redacted": True},

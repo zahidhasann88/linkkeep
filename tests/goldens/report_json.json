@@ -19,7 +19,7 @@
     "notes": "sitemap added 3 URL(s)",
     "config": {
       "site": "https://example.com",
-      "user_agent": "Linkkeep/0.1.0 (+https://github.com/YOUR-OWNER/linkkeep)",
+      "user_agent": "Linkkeep/0.1.0 (+https://example.test/linkkeep)",
       "crawl": {
         "max_pages": 1000,
         "concurrency": 10,
