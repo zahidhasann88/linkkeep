@@ -1,0 +1,133 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "linkkeep"
+version = "0.1.0"
+description = "Crawl a website, find broken links and redirect problems, and keep a history of every run."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "YOUR NAME" }]
+keywords = ["link-checker", "crawler", "broken-links", "seo", "ci", "sqlite"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+  "Topic :: Software Development :: Quality Assurance",
+  "Typing :: Typed",
+]
+dependencies = [
+  "typer>=0.12",
+  "rich>=13.0",
+  "httpx>=0.27",
+  "selectolax>=0.3.21",
+  "pydantic>=2.7",
+  "pyyaml>=6.0",
+  "protego>=0.3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "pytest-cov>=5.0",
+  "respx>=0.21",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "pre-commit>=3.7",
+  "build>=1.2",
+  "twine>=5.0",
+  "types-PyYAML>=6.0",
+]
+
+[project.scripts]
+linkkeep = "linkkeep.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR-OWNER/linkkeep"
+Repository = "https://github.com/YOUR-OWNER/linkkeep"
+Issues = "https://github.com/YOUR-OWNER/linkkeep/issues"
+Changelog = "https://github.com/YOUR-OWNER/linkkeep/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/linkkeep"]
+
+[tool.hatch.build.targets.sdist]
+artifacts = ["tests/fixtures/*"]
+exclude = [".github"]
+
+# --------------------------------------------------------------------------- ruff
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "tools"]
+
+[tool.ruff.lint]
+select = [
+  "E", "W", "F", "I", "UP", "B", "C4", "SIM", "RUF", "RET", "ASYNC",
+  "T20", "PTH", "ANN", "TRY", "PLC0414", "PT",
+]
+ignore = [
+  "ANN401",   # dynamically typed expressions (typing.Any) are disallowed
+  "E501",     # line length is handled by the formatter
+  "TRY003",   # long messages outside the exception class are fine for a CLI
+  "PTH123",   # open() is used for tests and file writes where Path is noisy
+  "RUF012",   # mutable class attrs; pydantic models are declared with annotations
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "T20", "PTH", "S101"]
+# fixture_site is a developer-only local server whose whole job is to talk on the terminal
+"src/linkkeep/fixture_site.py" = ["T20"]
+"src/linkkeep/cli.py" = ["B008"]
+"tools/*" = ["ANN", "T20", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["linkkeep"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# --------------------------------------------------------------------------- mypy
+[tool.mypy]
+python_version = "3.10"
+strict = true
+files = ["src/linkkeep"]
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["selectolax.*"]
+ignore_missing_imports = true
+
+# -------------------------------------------------------------------------- pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=linkkeep --cov-report=term-missing --cov-fail-under=85"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+  "integration: starts a local HTTP server (still no internet access)",
+]
+filterwarnings = ["error::DeprecationWarning:linkkeep.*"]
+
+# ------------------------------------------------------------------------ coverage
+[tool.coverage.run]
+branch = true
+source = ["src/linkkeep"]
+
+[tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+  "@overload",
+]

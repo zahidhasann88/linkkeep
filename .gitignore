@@ -1,0 +1,40 @@
+# Byte-compiled / build artefacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Environments
+.venv/
+venv/
+env/
+.env
+.envrc
+
+# Test / coverage output
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.cache/
+
+# Linkkeep output
+*.sqlite
+*.sqlite3
+*.db
+reports/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# output of `make demo DEMO_ARGS=--save`
+/demo-output/

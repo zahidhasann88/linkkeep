@@ -1,0 +1,38 @@
+ci:
+  skip: [mypy]
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: .venv/bin/ruff check --fix --no-cache
+        language: system
+        files: ^(src|tests|tools)/
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: .venv/bin/ruff format --no-cache
+        language: system
+        files: ^(src|tests|tools)/
+        types: [python]
+      - id: mypy
+        name: mypy (src)
+        entry: .venv/bin/mypy
+        language: system
+        files: ^src/
+        types: [python]
+        require_serial: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^tests/goldens/
+      - id: end-of-file-fixer
+        exclude: ^tests/goldens/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: debug-statements
+        files: ^src/
+      - id: mixed-line-ending
+        args: [--fix=lf]
