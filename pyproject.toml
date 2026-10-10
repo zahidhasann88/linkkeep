@@ -91,7 +91,7 @@ ignore = [
 "tools/*" = ["ANN", "T20", "B008"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["linkkeep"]
+known-first-party = ["linkkeep", "tests"]
 
 [tool.ruff.format]
 quote-style = "double"

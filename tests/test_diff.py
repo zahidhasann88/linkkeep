@@ -5,7 +5,6 @@ from __future__ import annotations
 import datetime as dt
 
 import pytest
-from tests.conftest import NOW, issue
 
 from linkkeep.config import LinkkeepError
 from linkkeep.diff import (
@@ -16,6 +15,7 @@ from linkkeep.diff import (
     resolve_run_ids,
 )
 from linkkeep.models import Counts, RunRecord, RunStatus
+from tests.conftest import NOW, issue
 
 SITE = "https://site.test"
 

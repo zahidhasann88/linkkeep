@@ -8,7 +8,6 @@ import sqlite3
 from pathlib import Path
 
 import pytest
-from tests.conftest import NOW, issue
 
 from linkkeep.models import (
     Counts,
@@ -21,6 +20,7 @@ from linkkeep.models import (
     utcnow,
 )
 from linkkeep.storage import MIGRATIONS, SCHEMA_VERSION, Storage, fingerprint_for, severity_order
+from tests.conftest import NOW, issue
 
 SITE = "https://site.test"
 

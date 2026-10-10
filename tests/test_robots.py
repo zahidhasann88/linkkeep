@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from tests.conftest import FakeFetcher
 
 from linkkeep.fetcher import FetchResult
 from linkkeep.robots import ROBOTS_ALLOWED_ON_ERROR, RobotsClient, empty_rules
+from tests.conftest import FakeFetcher
 
 ROBOTS = """User-agent: *
 Disallow: /private/

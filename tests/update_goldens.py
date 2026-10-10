@@ -19,9 +19,8 @@ if str(ROOT) not in sys.path:  # allow running without installing the package
     sys.path.insert(0, str(ROOT / "src"))
     sys.path.insert(0, str(ROOT))
 
-from tests.report_samples import sample_report_data  # noqa: E402
-
 from linkkeep.report import render  # noqa: E402
+from tests.report_samples import sample_report_data  # noqa: E402
 
 GOLDEN_DIR = Path(__file__).resolve().parent / "goldens"
 

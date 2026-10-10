@@ -11,6 +11,7 @@ import contextlib
 import datetime as dt
 import io
 import json
+import re
 import signal
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -18,7 +19,6 @@ from typing import Any
 
 import pytest
 import yaml
-from tests.conftest import BASE, NOW, FakeFetcher, issue, page
 from typer.testing import CliRunner
 
 from linkkeep import __version__, cli
@@ -27,6 +27,7 @@ from linkkeep.config import Config
 from linkkeep.crawler import CrawlReport
 from linkkeep.models import Counts, LinkRecord, RunStatus, Severity
 from linkkeep.storage import Storage
+from tests.conftest import BASE, NOW, FakeFetcher, issue, page
 
 SITE = BASE
 runner = CliRunner()
@@ -303,7 +304,7 @@ def test_crawl_without_any_seed_is_a_usage_error(workdir: Path, db: Path) -> Non
     code, output = invoke_main(["--db", str(db), "crawl"])
     assert code == EXIT_USAGE
     assert "no seed URL" in output
-    assert "linkkeep.yaml" in output
+    assert "linkkeep.yaml" in output.replace("\n", "")
     assert "Traceback" not in output
 
 
@@ -846,14 +847,17 @@ def test_broken_yaml_is_reported_with_a_hint(workdir: Path) -> None:
     (workdir / "linkkeep.yaml").write_text("site: [unclosed\n", encoding="utf-8")
     code, output = invoke_main(["runs"])
     assert code == EXIT_USAGE
-    assert "linkkeep.yaml" in output
+    assert "linkkeep.yaml" in output.replace("\n", "")
     assert "Traceback" not in output
 
 
 def test_invalid_option_value_is_reported_by_typer(db: Path) -> None:
     result = invoke(["crawl", SITE, "--concurrency", "0"], db=db)
     assert result.exit_code == EXIT_USAGE
-    assert "Invalid value for '--concurrency'" in result.output
+    plain = re.sub(r"\[[0-9;]*m", "", result.output)
+    assert "Invalid value for" in plain
+    assert "--concurrency" in plain
+    assert "range" in plain
 
 
 def test_database_path_that_cannot_be_used_is_reported(tmp_path: Path) -> None:

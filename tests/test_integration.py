@@ -436,7 +436,8 @@ def _get(url: str, *, timeout: float = 1.0) -> str:
 
     request = urllib.request.Request(url, headers={"User-Agent": "linkkeep-integration-test"})
     # urllib rather than httpx here: this test checks the server itself, not the client
-    with urllib.request.urlopen(request, timeout=timeout) as response:
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(request, timeout=timeout) as response:
         assert response.status == 200
         return response.read().decode("utf-8")
 
@@ -456,7 +457,9 @@ def _get_ready(url: str, *, within: float) -> str:
     raise AssertionError(f"{url} never answered: {last!r}")
 
 
-@pytest.mark.skipif(os.name == "nt", reason="SIGINT to a child process is Windows-specific")
+@pytest.mark.skipif(
+    os.name == "nt", reason="POSIX child-process SIGINT handling is unavailable on Windows"
+)
 def test_serving_the_fixture_site_as_a_module_answers_and_stops_cleanly(tmp_path: Path) -> None:
     """`python -m linkkeep.fixture_site` is a supported entry point, so it must really serve.
 
@@ -484,7 +487,11 @@ def test_serving_the_fixture_site_as_a_module_answers_and_stops_cleanly(tmp_path
         )
         base = f"http://127.0.0.1:{port}"
         try:
-            assert "Acme Widgets" in _get_ready(f"{base}/", within=20.0)
+            try:
+                home = _get_ready(f"{base}/", within=20.0)
+            except AssertionError as exc:
+                raise AssertionError(log.read_text(encoding="utf-8")) from exc
+            assert "Acme Widgets" in home
             assert "User-agent" in _get_ready(f"{base}/robots.txt", within=5.0)
         finally:
             process.send_signal(signal.SIGINT)

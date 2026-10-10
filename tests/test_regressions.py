@@ -8,8 +8,6 @@ from pathlib import Path
 
 import httpx
 import pytest
-from tests.conftest import BASE, NOW, FakeFetcher, page
-from tests.report_samples import sample_report_data
 
 from linkkeep.config import Config, ConfigError, read_yaml_config
 from linkkeep.crawler import Crawler
@@ -20,6 +18,8 @@ from linkkeep.report import render
 from linkkeep.robots import RobotsClient
 from linkkeep.storage import Storage
 from linkkeep.urlnorm import normalise_url, parse_url
+from tests.conftest import BASE, NOW, FakeFetcher, page
+from tests.report_samples import sample_report_data
 
 
 async def public_dns(host: str, port: int) -> list[str]:

@@ -10,7 +10,6 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from tests.report_samples import ISSUES, LINKS, PAGES, STARTED, sample_report_data
 
 from linkkeep.models import RunStatus
 from linkkeep.report import (
@@ -29,6 +28,7 @@ from linkkeep.report import html as html_report
 from linkkeep.report import junit as junit_report
 from linkkeep.report import markdown as markdown_report
 from linkkeep.report import xjson as json_report
+from tests.report_samples import ISSUES, LINKS, PAGES, STARTED, sample_report_data
 
 GOLDENS = Path(__file__).parent / "goldens"
 

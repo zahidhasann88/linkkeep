@@ -6,11 +6,11 @@ import asyncio
 import datetime as dt
 
 import pytest
-from tests.conftest import FakeFetcher, page
 
 from linkkeep.config import Config, ConfigError
 from linkkeep.crawler import Crawler, ignored_scheme, prepare_seeds, settings_from_config
 from linkkeep.models import LinkKind, RunStatus, Severity
+from tests.conftest import FakeFetcher, page
 
 SITE = "https://site.test"
 
