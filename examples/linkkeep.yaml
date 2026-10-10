@@ -1,0 +1,85 @@
+# Example Linkkeep configuration.
+#
+# Copy it next to your repo root as `linkkeep.yaml` (Linkkeep looks for that name in the
+# current directory and every parent) or point at it with `linkkeep --config this-file`.
+#
+# Every key is optional.  Precedence is: built-in defaults < this file < CLI flags, and
+# merging is per section, so `linkkeep crawl --max-pages 5` changes only max_pages.
+#
+# `linkkeep init` writes this same shape with the comments inline; this copy adds the
+# bits that only matter in CI.
+
+# Default seed URL so `linkkeep crawl` works with no arguments.
+site: https://example.com
+
+# Sent as User-Agent.  Keep the URL so site owners can find you; that is the whole point.
+user_agent: "Linkkeep/1.0 (+https://github.com/YOUR-OWNER/linkkeep)"
+
+# SQLite history.  Unset means the platform data directory
+# (~/.local/share/linkkeep/linkkeep.sqlite); $LINKKEEP_HOME also works.
+# In CI, put this somewhere cacheable, e.g. $RUNNER_TEMP/linkkeep-cache/history.sqlite
+database: ./linkkeep.sqlite
+
+# Honour Crawl-delay in robots.txt when a host publishes one.
+respect_crawl_delay: true
+
+crawl:
+  max_pages: 2000              # internal pages fetched per run
+  max_depth: 8                 # link depth; omit (or null) for unlimited
+  concurrency: 10              # simultaneous requests
+  rate: 5                      # requests per second, per host (strict minimum interval)
+  timeout: 20                  # seconds per request
+  retries: 1                   # retries for timeouts, connection errors, 429 and 5xx
+  max_redirect_hops: 3         # longer chains become a `redirect_chain` issue
+  max_response_size: 2000000   # parse HTML only up to this many bytes (2 MB)
+
+rules:
+  include_subdomains: true     # shop.example.com counts as internal
+
+  # Patterns are regexes when they parse as one, otherwise globs against the whole URL.
+  # Force one with a "re:" or "glob:" prefix.  include is applied first, exclude removes.
+  include:
+    - "glob:https://example.com/**"
+  exclude:
+    # assets: they are checked, but never crawled
+    - 're:\.(pdf|zip|jpg|jpeg|png|gif|webp|svg|ico|css|js|woff2?)$'
+    # things that log you out, rate limit you, or are search results
+    - "glob:*/logout*"
+    - "glob:*/search*"
+    - "glob:*/calendar.ics"
+    # an entire staging area
+    - "re:^https://example\\.com/tmp/"
+
+  ignore_status: [999]         # LinkedIn answers 999 to bots; not a real problem
+  check_fragments: true        # report `missing_fragment` for #anchors that do not exist
+  sitemap: true                # also queue URLs from /sitemap.xml and the robots.txt hint
+  follow_external: true        # status-check off-site links (HEAD, then GET) but never crawl them
+  allow_private: false         # never fetch loopback/private hosts unless explicitly allowed
+  ignore_robots: false         # set true only if you own the target and mean it
+
+  url_trailing_slash: keep     # keep | strip | add - how /x and /x/ are deduplicated
+  url_sort_query: false        # sort query parameters before deduplicating
+
+detection:
+  slow_ms: 4000                # `slow` info issue above this response time (server time only)
+  mixed_content: true          # http resources referenced from https pages
+  temporary_redirect_hint: true  # 302/307 on internal links -> info
+
+auth:
+  # Values are resolved when the request is built and are NEVER printed, logged or stored.
+  # "env:NAME" reads the environment variable NAME at request time.
+  headers:
+    Authorization: "env:LINKKEEP_AUTH"
+  cookies:
+    session: "env:LINKKEEP_SESSION"
+
+output:
+  fail_on: error               # error | warning | info | never -> exit code 1 threshold
+  format: text                 # text | json | markdown | html | junit | none
+  color: true
+  quiet: false
+  verbose: false
+
+watch:
+  every: 6h                    # 30m | 6h | 1d
+  notify_webhook: null         # e.g. https://hooks.slack.com/services/... (see below)

@@ -1,0 +1,84 @@
+# Weekly link check that fails only on NEW problems.
+#
+# Copy to .github/workflows/linkcheck.yml in your repository.
+#
+# The two ideas worth stealing:
+#   1. keep the SQLite history in a cache so `diff` has something to compare against;
+#   2. never let the crawl step fail the job (--fail-on never).  The `diff` step decides:
+#      it exits 1 only when findings are NEW, which means the fix is someone's job today.
+name: link check
+
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC - a time with no particular traffic
+  workflow_dispatch: {} # and a button for "check now"
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    env:
+      SITE: https://example.com
+      CACHE_DIR: ${{ runner.temp }}/linkkeep-cache
+      DB: ${{ runner.temp }}/linkkeep-cache/history.sqlite
+    steps:
+      - name: Restore link history
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: linkkeep-${{ github.run_id }} # fresh key every run ...
+          restore-keys: linkkeep- # ... restored from the previous run
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pipx install linkkeep
+
+      - name: Show what will be used
+        run: |
+          linkkeep --version
+          echo "history: $DB"
+          ls -la "$CACHE_DIR" || echo "(no previous history - this run becomes the baseline)"
+
+      - name: Crawl
+        # `--fail-on never`: the crawl itself must not decide the outcome of the job.
+        run: |
+          linkkeep --db "$DB" crawl "$SITE" \
+            --fail-on never \
+            --sitemap \
+            --check-fragments \
+            --format json \
+            --output report.json
+
+      - name: Report in the job summary and fail on new errors
+        run: |
+          if [ -f "$DB" ] && [ -n "$(linkkeep --db "$DB" runs --json | tr -d ' \n[]')" ]; then
+            # `diff` writes NEW/FIXED/PERSISTING markdown and exits 1 when NEW findings
+            # reach --fail-on (default: error).
+            linkkeep --db "$DB" diff --format markdown >>"$GITHUB_STEP_SUMMARY"
+          else
+            echo "### Link check" >>"$GITHUB_STEP_SUMMARY"
+            echo "First crawl: recorded $(date -u +%FT%TZ) as the baseline." >>"$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the machine-readable report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: linkkeep-report
+          path: report.json
+          if-no-files-found: warn
+
+      # Optional: tell a chat channel.  `watch --once` diffs against the previous stored
+      # run and POSTs the JSON summary in the "webhook payload" shape from the README.
+      # - name: Notify on regressions
+      #   if: failure()
+      #   run: |
+      #     curl -fsS -X POST -H 'content-type: application/json' \
+      #       -d "{\"text\":\"link check failed: $(linkkeep --db "$DB" diff -q)\"}" \
+      #       "$SLACK_WEBHOOK_URL"
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
