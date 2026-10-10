@@ -68,6 +68,8 @@ linkkeep prune --older-than 90d     # tidy up the history
 Exit codes are CI-friendly: `0` clean, `1` issues at or above `--fail-on` (default
 `error`), `2` usage/configuration error, `3` the crawl could not run at all.
 
+![Linkkeep comparing crawl history with new, fixed, and persisting issues](docs/screenshots/demo.png)
+
 ### A real run
 
 Here is actual output from `make demo`, which serves a deliberately messy site on
