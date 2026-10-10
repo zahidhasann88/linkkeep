@@ -27,6 +27,7 @@ import time
 from collections import Counter
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from socketserver import TCPServer
 from typing import Any, ClassVar
 from urllib.parse import urlsplit
 
@@ -319,6 +320,12 @@ class FixtureServer(ThreadingHTTPServer):
         super().__init__(address, self._bound_handler)
         self.port = int(self.server_address[1])
         self.rebind_routes()
+
+    def server_bind(self) -> None:
+        # The local fixture does not need HTTPServer's reverse DNS lookup.
+        TCPServer.server_bind(self)
+        self.server_name = str(self.server_address[0])
+        self.server_port = int(self.server_address[1])
 
     # -- state ----------------------------------------------------------------
     def rebind_routes(self) -> None:

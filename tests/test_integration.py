@@ -507,3 +507,18 @@ def test_serving_the_fixture_site_as_a_module_answers_and_stops_cleanly(tmp_path
     assert f"serving broken fixture site at {base}" in text
     assert "Traceback" not in text
     assert "stopped" in text
+
+
+def test_fixture_server_starts_without_reverse_dns(monkeypatch: pytest.MonkeyPatch) -> None:
+    import socket
+
+    from linkkeep.fixture_site import running_site
+
+    def reject_lookup(*args: object, **kwargs: object) -> str:
+        raise AssertionError("fixture startup must not resolve hostnames")
+
+    monkeypatch.setattr(socket, "getfqdn", reject_lookup)
+    with running_site() as server:
+        assert server.server_name == "127.0.0.1"
+        assert server.server_port == server.port
+        assert "Acme Widgets" in _get(f"{server.url}/")
