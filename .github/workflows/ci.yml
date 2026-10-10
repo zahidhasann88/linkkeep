@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - name: ruff check
+        run: ruff check src tests tools
+      - name: ruff format --check
+        run: ruff format --check src tests tools
+      - name: mypy strict
+        run: mypy
+      - name: bundled yaml files parse
+        run: python tools/check_yaml.py
+
+  tests:
+    name: tests / ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          allow-prereleases: true
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - name: "pytest (coverage gate: 85%)"
+        run: pytest -q --cov=linkkeep --cov-report=term-missing --cov-fail-under=85
+      - name: the console script works
+        run: linkkeep --version
+
+  demo:
+    name: end-to-end demo on the fixture site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: run tools/demo.py
+        run: python tools/demo.py --outdir "$RUNNER_TEMP/demo"
+      - name: check the demo output
+        run: |
+          test -s "$RUNNER_TEMP/demo/01-crawl.txt"
+          test -s "$RUNNER_TEMP/demo/08-report.html"
+          if grep -q "Traceback (most recent call last)" "$RUNNER_TEMP"/demo/*.txt; then
+            echo "the demo output contains a traceback" >&2
+            exit 1
+          fi
+          echo "demo ok"
+
+  build:
+    name: sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: dist/*

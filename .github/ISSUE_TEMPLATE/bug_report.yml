@@ -1,0 +1,90 @@
+name: Bug report
+description: Linkkeep said something it shouldn't have, or didn't say something it should have
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Two things make a link-check bug report fixable in one round trip: the **exact
+        command** and the **HTML of the page or element** involved. Please paste both, even
+        if the HTML looks irrelevant. Strip anything secret.
+
+  - type: input
+    id: version
+    attributes:
+      label: Linkkeep version
+      description: output of `linkkeep --version`
+      placeholder: "linkkeep 0.1.0"
+    validations: {required: true}
+
+  - type: textarea
+    id: command
+    attributes:
+      label: The command you ran
+      description: Include flags and any linkkeep.yaml you used (secrets removed).
+      value: |
+        ```bash
+        linkkeep crawl https://example.com --check-fragments --format text
+        ```
+      render: shell
+    validations: {required: true}
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened
+      description: Complete output. If it crashed, run with --verbose and paste the traceback.
+      value: |
+        ```text
+        paste output here
+        ```
+    validations: {required: true}
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      description: |
+        One or two sentences. For false positives, paste the relevant HTML - a `<template>`
+        block, a `srcset`, a relative URL with a `<base href>`, and so on are all places the
+        crawler can be more careful.
+      value: |
+        ```html
+        <a href="/x">...</a>
+        ```
+    validations: {required: true}
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part is wrong?
+      options:
+        - crawling / which pages are fetched
+        - link extraction (missed or invented links)
+        - issue detection (false positive or false negative)
+        - URL normalisation / dedupe
+        - robots.txt handling
+        - report output (text, json, markdown, html, junit)
+        - diff / runs / history
+        - CLI (flags, exit codes, error messages)
+        - install / packaging
+    validations: {required: true}
+
+  - type: input
+    id: python
+    attributes:
+      label: Python and OS
+      placeholder: "CPython 3.12.7 on Ubuntu 24.04"
+    validations: {required: true}
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you post
+      options:
+        - label: I removed any real credentials from the config I pasted
+          required: true
+        - label: I checked the issue reference in the README, in case the behaviour is intentional
+          required: true
+        - label: If the site is public, I linked a URL that reproduces it (optional but very helpful)
+          required: false

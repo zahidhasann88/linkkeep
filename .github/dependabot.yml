@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:20"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+    labels: [dependencies]
+    # runtime dependencies are deliberately few and slow-moving; a PR that bumps one is
+    # a request to re-read why it is pinned where it is (see "Design decisions" in README)
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:20"
+      timezone: "Etc/UTC"
+    commit-message:
+      prefix: chore
+    labels: [dependencies]

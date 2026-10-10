@@ -1,0 +1,54 @@
+name: Feature request
+description: A change you would like to see
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation, not the solution. A concrete "I ran X and got Y" is worth ten abstractions.
+      placeholder: |
+        I check links for 40 documentation sites. Every run ends with the same three
+        third-party 403s, and I have to explain them in each PR.
+    validations: {required: true}
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: What would you like the tool to do?
+      description: Show the command you would run and the output you would read.
+      value: |
+        ```bash
+        linkkeep crawl ... --known-issue-file .linkkeep-accepted.yaml
+        ```
+    validations: {required: true}
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What else did you consider?
+      description: Existing flags, config keys, or another tool. Why did they not work?
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - new issue type / detection
+        - crawling behaviour
+        - report format
+        - CLI ergonomics
+        - config / storage
+        - integrations (CI, webhooks, GitHub App)
+        - packaging / distribution
+        - documentation
+    validations: {required: true}
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Fit with the project's constraints
+      description: Linkkeep keeps its dependency set small and does no JS rendering in v0.x. A feature that breaks one of those needs an unusually good reason.
+      options:
+        - label: I understand this may be refused if it needs a headless browser or a new dependency
+          required: true
