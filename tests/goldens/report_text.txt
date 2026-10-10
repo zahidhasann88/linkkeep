@@ -1,0 +1,75 @@
+==============================================================================
+Linkkeep 0.1.0 - run #42 - https://example.com
+==============================================================================
+status     completed   finished 2026-03-04 09:00
+notes      sitemap added 3 URL(s)
+
+5 errors, 4 warnings, 3 info
+pages      6 crawled (1 blocked by robots)
+links      48 found, 41 checked, 5 non-http skipped, 3 excluded
+by type    blocked_by_robots=1, broken=2, missing_fragment=1, mixed_content=1, redirect_chain=1, redirect_http_downgrade=1, redirect_loop=1, redirect_temporary_permanent_internal=1, redirect_to_error=1, slow=1, unreachable=1
+duration   12.3s
+
+ISSUES
+------------------------------------------------------------------------------
+
+[ERROR] broken - 2  (Target responded with a 4xx/5xx status)
+  from: https://example.com/
+    https://example.com/shop/checkout
+      HTTP 500 <a href> "Checkout"
+  from: https://example.com/blog/post-1
+    https://example.com/docs/handbook.pdf
+      HTTP 404 <a href> "Handbook"
+
+[ERROR] redirect_loop - 1  (Redirect chain loops back to a URL already seen)
+  from: https://example.com/forum
+    https://example.com/forum/thread/7
+      HTTP 301 <a href>
+      chain: 301 https://example.com/forum/thread/7 -> 301 https://example.com/login
+
+[ERROR] redirect_to_error - 1  (Redirect chain ends in a 4xx/5xx status)
+  from: https://example.com/promo
+    https://example.com/click/99
+      HTTP 410 <a href> "Summer sale"
+      chain: 302 https://example.com/click/99 -> 410 https://partner.test/go?x=1
+
+[ERROR] unreachable - 1  (Target could not be reached at all)
+  from: https://example.com/about
+    https://cdn.example.test/widgets.js
+      DNS failure: Name or service not known <script src>
+
+[WARNING] missing_fragment - 1  (The #fragment does not exist on the target page)
+  from: https://example.com/docs
+    https://example.com/docs/api#authentication
+      no id or name 'authentication' on the target page <a href> "Auth"
+
+[WARNING] mixed_content - 1  (HTTP resource linked from an HTTPS page)
+  from: https://example.com/pricing
+    http://cdn.example.com/banner.png
+      insecure http resource on an https page <img src> "Banner"
+
+[WARNING] redirect_chain - 1  (Too many redirects in the chain)
+  from: https://example.com/legacy
+    https://example.com/old/news
+      HTTP 200 <a href> "News"
+      chain: 301 https://example.com/old/news -> 301 https://example.com/n1 -> 301 https://example.com/n2 -> 301 https://example.com/n3 -> 200 https://example.com/news
+
+[WARNING] redirect_http_downgrade - 1  (HTTPS URL redirects down to HTTP)
+  from: https://example.com/secure
+    https://example.com/login
+      HTTP 200 <a href> "Log in"
+
+[INFO] blocked_by_robots - 1  (robots.txt prevented Linkkeep from crawling this URL)
+  from: https://example.com/internal
+    https://example.com/admin/users
+      robots.txt disallows Linkkeep for this URL, so it was not crawled or checked <a href>
+
+[INFO] redirect_temporary_permanent_internal - 1  (Internal link uses a temporary redirect)
+  from: https://example.com/
+    https://example.com/news-2024
+      HTTP 302 <a href>
+
+[INFO] slow - 1  (Target is slower than the configured threshold)
+  from: https://example.com/
+    https://example.com/reports/q1
+      HTTP 200 <a href> "Q1 report"

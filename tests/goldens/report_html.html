@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Linkkeep run #42 - https://example.com</title>
+<style>
+:root{color-scheme:light dark;--bg:#fff;--fg:#16191d;--muted:#5b6572;--line:#e3e7ec;--card:#f7f8fa;
+--error:#b42318;--error-bg:#fee4e2;--warning:#b54708;--warning-bg:#fef0c7;--info:#175cd3;--info-bg:#d1e9ff}
+@media (prefers-color-scheme:dark){:root{--bg:#101216;--fg:#e8eaed;--muted:#98a1ae;--line:#252a33;--card:#171a20;
+--error:#f97066;--error-bg:#55160c;--warning:#f79009;--warning-bg:#3c2604;--info:#53b1fd;--info-bg:#102a43}}
+*{box-sizing:border-box}
+body{margin:0;padding:1.25rem;background:var(--bg);color:var(--fg);
+font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+main{max-width:1100px;margin:0 auto}
+h1{font-size:1.35rem;margin:0 0 .25rem;word-break:break-word}
+h2{font-size:1.05rem;margin:1.75rem 0 .5rem}
+a{color:var(--info);word-break:break-all}
+.muted{color:var(--muted);font-size:.85rem}
+.metrics{display:flex;flex-wrap:wrap;gap:.5rem;margin:.9rem 0 0;padding:0;list-style:none}
+.metrics li{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.4rem .65rem;font-size:.85rem}
+.metrics b{font-size:1.05rem;display:block}
+.filters{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:1.1rem 0 .8rem}
+.filters button{font:inherit;font-size:.82rem;padding:.3rem .6rem;border-radius:999px;border:1px solid var(--line);
+background:var(--card);color:var(--fg);cursor:pointer}
+.filters button[aria-pressed=true]{border-color:var(--fg);background:var(--fg);color:var(--bg)}
+.filters input{font:inherit;font-size:.85rem;padding:.35rem .55rem;border:1px solid var(--line);border-radius:8px;
+background:var(--bg);color:var(--fg);min-width:10rem;flex:1}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+td.url{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;word-break:break-all}
+.tag{display:inline-block;padding:.05rem .45rem;border-radius:999px;font-size:.72rem;font-weight:600;
+text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.tag.error{color:var(--error);background:var(--error-bg)}
+.tag.warning{color:var(--warning);background:var(--warning-bg)}
+.tag.info{color:var(--info);background:var(--info-bg)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.85em}
+.chain{color:var(--muted);font-size:.78rem;margin-top:.2rem;word-break:break-all}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:1.25rem;text-align:center;color:var(--muted)}
+.cols{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(19rem,1fr))}
+.panel{border:1px solid var(--line);border-radius:10px;padding:.75rem .9rem;background:var(--card)}
+.panel ul{margin:.4rem 0 0;padding-left:1.1rem}
+.panel li{margin:.3rem 0;word-break:break-all}
+[hidden]{display:none!important}
+@media (max-width:720px){
+ body{padding:.75rem}
+ thead{display:none}
+ tr{display:block;border:1px solid var(--line);border-radius:10px;padding:.35rem .55rem;margin-bottom:.6rem}
+ td{display:block;border:0;padding:.2rem 0}
+ td[data-label]::before{content:attr(data-label) " ";color:var(--muted);font-size:.72rem;text-transform:uppercase}
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Linkkeep &middot; https://example.com</h1><p class="muted">run #42 <span class="tag info">completed</span> &middot; 2026-03-04 09:00 UTC &middot; 12.3s &middot; seed: https://example.com/</p><p class="muted">sitemap added 3 URL(s)</p>
+<ul class="metrics"><li><b>5</b>errors</li><li><b>4</b>warnings</li><li><b>3</b>info</li><li><b>6</b>pages</li><li><b>48</b>links</li><li><b>41</b>checked</li><li><b>1</b>robots blocked</li><li><b>5</b>non-http</li></ul>
+<div class="filters"><input id="q" type="search" placeholder="filter URLs / text (press /)" aria-label="Filter issues"><button data-filter="severity" data-value="error" aria-pressed="false">errors</button><button data-filter="severity" data-value="warning" aria-pressed="false">warnings</button><button data-filter="severity" data-value="info" aria-pressed="false">info</button><button data-filter="type" data-value="broken" aria-pressed="false">broken (2)</button><button data-filter="type" data-value="redirect_loop" aria-pressed="false">redirect_loop (1)</button><button data-filter="type" data-value="redirect_to_error" aria-pressed="false">redirect_to_error (1)</button><button data-filter="type" data-value="unreachable" aria-pressed="false">unreachable (1)</button><button data-filter="type" data-value="missing_fragment" aria-pressed="false">missing_fragment (1)</button><button data-filter="type" data-value="mixed_content" aria-pressed="false">mixed_content (1)</button><button data-filter="type" data-value="redirect_chain" aria-pressed="false">redirect_chain (1)</button><button data-filter="type" data-value="redirect_http_downgrade" aria-pressed="false">redirect_http_downgrade (1)</button><button data-filter="type" data-value="blocked_by_robots" aria-pressed="false">blocked_by_robots (1)</button><button data-filter="type" data-value="redirect_temporary_permanent_internal" aria-pressed="false">redirect_temporary_permanent_internal (1)</button><button data-filter="type" data-value="slow" aria-pressed="false">slow (1)</button><span id="shown" class="muted"></span></div>
+<table><thead><tr><th>severity</th><th>type</th><th>target</th><th>result</th><th>found on</th></tr></thead><tbody><tr data-type="broken" data-severity="error"><td data-label="severity"><span class="tag error">error</span></td><td data-label="type"><code>broken</code></td><td class="url" data-label="target">https://example.com/shop/checkout</td><td data-label="result">HTTP 500</td><td data-label="found on"><code>https://example.com/</code><br><span class=muted>a href &ldquo;Checkout&rdquo;</span></td></tr><tr data-type="broken" data-severity="error"><td data-label="severity"><span class="tag error">error</span></td><td data-label="type"><code>broken</code></td><td class="url" data-label="target">https://example.com/docs/handbook.pdf</td><td data-label="result">HTTP 404</td><td data-label="found on"><code>https://example.com/blog/post-1</code><br><span class=muted>a href &ldquo;Handbook&rdquo;</span></td></tr><tr data-type="redirect_loop" data-severity="error"><td data-label="severity"><span class="tag error">error</span></td><td data-label="type"><code>redirect_loop</code></td><td class="url" data-label="target">https://example.com/forum/thread/7<div class="chain">chain: 301 https://example.com/forum/thread/7 -&gt; 301 https://example.com/login</div></td><td data-label="result">HTTP 301</td><td data-label="found on"><code>https://example.com/forum</code><br><span class=muted>a href</span></td></tr><tr data-type="redirect_to_error" data-severity="error"><td data-label="severity"><span class="tag error">error</span></td><td data-label="type"><code>redirect_to_error</code></td><td class="url" data-label="target">https://example.com/click/99<div class="chain">chain: 302 https://example.com/click/99 -&gt; 410 https://partner.test/go?x=1</div></td><td data-label="result">HTTP 410</td><td data-label="found on"><code>https://example.com/promo</code><br><span class=muted>a href &ldquo;Summer sale&rdquo;</span></td></tr><tr data-type="unreachable" data-severity="error"><td data-label="severity"><span class="tag error">error</span></td><td data-label="type"><code>unreachable</code></td><td class="url" data-label="target">https://cdn.example.test/widgets.js</td><td data-label="result">DNS failure: Name or service not known</td><td data-label="found on"><code>https://example.com/about</code><br><span class=muted>script src</span></td></tr><tr data-type="missing_fragment" data-severity="warning"><td data-label="severity"><span class="tag warning">warning</span></td><td data-label="type"><code>missing_fragment</code></td><td class="url" data-label="target">https://example.com/docs/api#authentication</td><td data-label="result">no id or name &#x27;authentication&#x27; on the target page</td><td data-label="found on"><code>https://example.com/docs</code><br><span class=muted>a href &ldquo;Auth&rdquo;</span></td></tr><tr data-type="mixed_content" data-severity="warning"><td data-label="severity"><span class="tag warning">warning</span></td><td data-label="type"><code>mixed_content</code></td><td class="url" data-label="target">http://cdn.example.com/banner.png</td><td data-label="result">insecure http resource on an https page</td><td data-label="found on"><code>https://example.com/pricing</code><br><span class=muted>img src &ldquo;Banner&rdquo;</span></td></tr><tr data-type="redirect_chain" data-severity="warning"><td data-label="severity"><span class="tag warning">warning</span></td><td data-label="type"><code>redirect_chain</code></td><td class="url" data-label="target">https://example.com/old/news<div class="chain">chain: 301 https://example.com/old/news -&gt; 301 https://example.com/n1 -&gt; 301 https://example.com/n2 -&gt; 301 https://example.com/n3 -&gt; 200 https://example.com/news</div></td><td data-label="result">HTTP 200</td><td data-label="found on"><code>https://example.com/legacy</code><br><span class=muted>a href &ldquo;News&rdquo;</span></td></tr><tr data-type="redirect_http_downgrade" data-severity="warning"><td data-label="severity"><span class="tag warning">warning</span></td><td data-label="type"><code>redirect_http_downgrade</code></td><td class="url" data-label="target">https://example.com/login</td><td data-label="result">HTTP 200</td><td data-label="found on"><code>https://example.com/secure</code><br><span class=muted>a href &ldquo;Log in&rdquo;</span></td></tr><tr data-type="blocked_by_robots" data-severity="info"><td data-label="severity"><span class="tag info">info</span></td><td data-label="type"><code>blocked_by_robots</code></td><td class="url" data-label="target">https://example.com/admin/users</td><td data-label="result">robots.txt disallows Linkkeep for this URL, so it was not crawled or checked</td><td data-label="found on"><code>https://example.com/internal</code><br><span class=muted>a href</span></td></tr><tr data-type="redirect_temporary_permanent_internal" data-severity="info"><td data-label="severity"><span class="tag info">info</span></td><td data-label="type"><code>redirect_temporary_permanent_internal</code></td><td class="url" data-label="target">https://example.com/news-2024</td><td data-label="result">HTTP 302</td><td data-label="found on"><code>https://example.com/</code><br><span class=muted>a href</span></td></tr><tr data-type="slow" data-severity="info"><td data-label="severity"><span class="tag info">info</span></td><td data-label="type"><code>slow</code></td><td class="url" data-label="target">https://example.com/reports/q1</td><td data-label="result">HTTP 200</td><td data-label="found on"><code>https://example.com/</code><br><span class=muted>a href &ldquo;Q1 report&rdquo;</span></td></tr></tbody></table>
+<p class="muted">Generated 2026-03-04 09:00 UTC by Linkkeep 0.1.0. This file is self-contained: no scripts, styles or fonts are loaded from anywhere else.</p>
+<script>
+(function () {
+  var rows = Array.prototype.slice.call(document.querySelectorAll('tbody tr[data-type]'));
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.filters button[data-filter]'));
+  var search = document.getElementById('q');
+  var state = { type: 'all', severity: 'all', text: '' };
+  function apply() {
+    var shown = 0;
+    rows.forEach(function (row) {
+      var okType = state.type === 'all' || row.getAttribute('data-type') === state.type;
+      var okSev = state.severity === 'all' || row.getAttribute('data-severity') === state.severity;
+      var okText = !state.text || row.textContent.toLowerCase().indexOf(state.text) !== -1;
+      var show = okType && okSev && okText;
+      row.hidden = !show;
+      if (show) { shown++; }
+    });
+    var count = document.getElementById('shown');
+    if (count) { count.textContent = shown + ' of ' + rows.length + ' shown'; }
+    buttons.forEach(function (button) {
+      var on = button.getAttribute('data-filter') === 'type' ? state.type === button.getAttribute('data-value')
+                                                       : state.severity === button.getAttribute('data-value');
+      button.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+  buttons.forEach(function (button) {
+    button.addEventListener('click', function () {
+      var key = button.getAttribute('data-filter') === 'type' ? 'type' : 'severity';
+      var value = button.getAttribute('data-value');
+      state[key] = state[key] === value ? 'all' : value;
+      apply();
+    });
+  });
+  if (search) {
+    search.addEventListener('input', function () { state.text = search.value.trim().toLowerCase(); apply(); });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === '/' && document.activeElement !== search) { event.preventDefault(); search.focus(); }
+    });
+  }
+  apply();
+})();
+</script>
+</main>
+</body>
+</html>

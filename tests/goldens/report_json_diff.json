@@ -1,0 +1,814 @@
+{
+  "schema_version": 1,
+  "tool": {
+    "name": "linkkeep",
+    "version": "0.1.0"
+  },
+  "generated_at": "2026-03-04T09:00:15+00:00",
+  "site": "https://example.com",
+  "run": {
+    "id": 42,
+    "site": "https://example.com",
+    "status": "completed",
+    "started_at": "2026-03-04T09:00:00+00:00",
+    "finished_at": "2026-03-04T09:00:12.340000+00:00",
+    "duration_seconds": 12.34,
+    "seeds": [
+      "https://example.com/"
+    ],
+    "notes": "sitemap added 3 URL(s)",
+    "config": {
+      "site": "https://example.com",
+      "user_agent": "Linkkeep/0.1.0 (+https://github.com/YOUR-OWNER/linkkeep)",
+      "crawl": {
+        "max_pages": 1000,
+        "concurrency": 10,
+        "rate": 5.0,
+        "timeout": 15.0
+      },
+      "rules": {
+        "include": [],
+        "exclude": [
+          "/admin/"
+        ],
+        "ignore_status": [
+          999
+        ]
+      },
+      "auth": {
+        "headers": [
+          "Authorization"
+        ],
+        "cookies": [],
+        "redacted": true
+      }
+    }
+  },
+  "counts": {
+    "pages": 6,
+    "links": 48,
+    "checked": 41,
+    "skipped_scheme": 5,
+    "fragment_only": 2,
+    "excluded": 3,
+    "robots_blocked": 1,
+    "errors": 5,
+    "warnings": 4,
+    "infos": 3,
+    "by_type": {
+      "blocked_by_robots": 1,
+      "broken": 2,
+      "missing_fragment": 1,
+      "mixed_content": 1,
+      "redirect_chain": 1,
+      "redirect_http_downgrade": 1,
+      "redirect_loop": 1,
+      "redirect_temporary_permanent_internal": 1,
+      "redirect_to_error": 1,
+      "slow": 1,
+      "unreachable": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "broken",
+      "severity": "error",
+      "fingerprint": "a1b2c3d4e5f60709",
+      "source_url": "https://example.com/",
+      "target_url": "https://example.com/shop/checkout",
+      "final_url": null,
+      "status": 500,
+      "reason": null,
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Checkout",
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:02+00:00",
+      "description": "Target responded with a 4xx/5xx status",
+      "summary": "HTTP 500"
+    },
+    {
+      "code": "broken",
+      "severity": "error",
+      "fingerprint": "a1b2c3d4e5f60708",
+      "source_url": "https://example.com/blog/post-1",
+      "target_url": "https://example.com/docs/handbook.pdf",
+      "final_url": null,
+      "status": 404,
+      "reason": null,
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Handbook",
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:01+00:00",
+      "description": "Target responded with a 4xx/5xx status",
+      "summary": "HTTP 404"
+    },
+    {
+      "code": "redirect_loop",
+      "severity": "error",
+      "fingerprint": "e5f60708090a0b0c",
+      "source_url": "https://example.com/forum",
+      "target_url": "https://example.com/forum/thread/7",
+      "final_url": null,
+      "status": 301,
+      "reason": "redirect loop: redirect loop back to https://example.com/forum/thread/7",
+      "element": "a",
+      "attribute": "href",
+      "link_text": null,
+      "redirect_chain": [
+        {
+          "url": "https://example.com/forum/thread/7",
+          "status": 301,
+          "location": "https://example.com/login"
+        },
+        {
+          "url": "https://example.com/login",
+          "status": 301,
+          "location": "https://example.com/forum/thread/7"
+        }
+      ],
+      "found_at": "2026-03-04T09:00:06+00:00",
+      "description": "Redirect chain loops back to a URL already seen",
+      "summary": "HTTP 301"
+    },
+    {
+      "code": "redirect_to_error",
+      "severity": "error",
+      "fingerprint": "d4e5f60708090a0b",
+      "source_url": "https://example.com/promo",
+      "target_url": "https://example.com/click/99",
+      "final_url": "https://partner.test/expired",
+      "status": 410,
+      "reason": "redirect chain ends in HTTP 410",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Summer sale",
+      "redirect_chain": [
+        {
+          "url": "https://example.com/click/99",
+          "status": 302,
+          "location": "https://partner.test/go?x=1"
+        },
+        {
+          "url": "https://partner.test/go?x=1",
+          "status": 410,
+          "location": null
+        }
+      ],
+      "found_at": "2026-03-04T09:00:05+00:00",
+      "description": "Redirect chain ends in a 4xx/5xx status",
+      "summary": "HTTP 410"
+    },
+    {
+      "code": "unreachable",
+      "severity": "error",
+      "fingerprint": "b2c3d4e5f6070809",
+      "source_url": "https://example.com/about",
+      "target_url": "https://cdn.example.test/widgets.js",
+      "final_url": null,
+      "status": null,
+      "reason": "DNS failure: Name or service not known",
+      "element": "script",
+      "attribute": "src",
+      "link_text": null,
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:03+00:00",
+      "description": "Target could not be reached at all",
+      "summary": "DNS failure: Name or service not known"
+    },
+    {
+      "code": "missing_fragment",
+      "severity": "warning",
+      "fingerprint": "3a0b0c0d0e0f1011",
+      "source_url": "https://example.com/docs",
+      "target_url": "https://example.com/docs/api#authentication",
+      "final_url": "https://example.com/docs/api",
+      "status": null,
+      "reason": "no id or name 'authentication' on the target page",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Auth",
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:11+00:00",
+      "description": "The #fragment does not exist on the target page",
+      "summary": "no id or name 'authentication' on the target page"
+    },
+    {
+      "code": "mixed_content",
+      "severity": "warning",
+      "fingerprint": "18090a0b0c0d0e0f",
+      "source_url": "https://example.com/pricing",
+      "target_url": "http://cdn.example.com/banner.png",
+      "final_url": null,
+      "status": null,
+      "reason": "insecure http resource on an https page",
+      "element": "img",
+      "attribute": "src",
+      "link_text": "Banner",
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:09+00:00",
+      "description": "HTTP resource linked from an HTTPS page",
+      "summary": "insecure http resource on an https page"
+    },
+    {
+      "code": "redirect_chain",
+      "severity": "warning",
+      "fingerprint": "c3d4e5f60708090a",
+      "source_url": "https://example.com/legacy",
+      "target_url": "https://example.com/old/news",
+      "final_url": "https://example.com/news",
+      "status": 200,
+      "reason": "4 redirects, more than the limit of 3",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "News",
+      "redirect_chain": [
+        {
+          "url": "https://example.com/old/news",
+          "status": 301,
+          "location": "https://example.com/n1"
+        },
+        {
+          "url": "https://example.com/n1",
+          "status": 301,
+          "location": "https://example.com/n2"
+        },
+        {
+          "url": "https://example.com/n2",
+          "status": 301,
+          "location": "https://example.com/n3"
+        },
+        {
+          "url": "https://example.com/n3",
+          "status": 301,
+          "location": "https://example.com/news"
+        },
+        {
+          "url": "https://example.com/news",
+          "status": 200,
+          "location": null
+        }
+      ],
+      "found_at": "2026-03-04T09:00:04+00:00",
+      "description": "Too many redirects in the chain",
+      "summary": "HTTP 200"
+    },
+    {
+      "code": "redirect_http_downgrade",
+      "severity": "warning",
+      "fingerprint": "f60708090a0b0c0d",
+      "source_url": "https://example.com/secure",
+      "target_url": "https://example.com/login",
+      "final_url": "http://example.com/login",
+      "status": 200,
+      "reason": "https URL redirects down to http",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Log in",
+      "redirect_chain": [
+        {
+          "url": "https://example.com/login",
+          "status": 301,
+          "location": "http://example.com/login"
+        }
+      ],
+      "found_at": "2026-03-04T09:00:07+00:00",
+      "description": "HTTPS URL redirects down to HTTP",
+      "summary": "HTTP 200"
+    },
+    {
+      "code": "blocked_by_robots",
+      "severity": "info",
+      "fingerprint": "4b0c0d0e0f101112",
+      "source_url": "https://example.com/internal",
+      "target_url": "https://example.com/admin/users",
+      "final_url": null,
+      "status": null,
+      "reason": "robots.txt disallows Linkkeep for this URL, so it was not crawled or checked",
+      "element": "a",
+      "attribute": "href",
+      "link_text": null,
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:12+00:00",
+      "description": "robots.txt prevented Linkkeep from crawling this URL",
+      "summary": "robots.txt disallows Linkkeep for this URL, so it was not crawled or checked"
+    },
+    {
+      "code": "redirect_temporary_permanent_internal",
+      "severity": "info",
+      "fingerprint": "0708090a0b0c0d0e",
+      "source_url": "https://example.com/",
+      "target_url": "https://example.com/news-2024",
+      "final_url": "https://example.com/news",
+      "status": 302,
+      "reason": "HTTP 302 is temporary; a permanent internal link should use 301",
+      "element": "a",
+      "attribute": "href",
+      "link_text": null,
+      "redirect_chain": [
+        {
+          "url": "https://example.com/news-2024",
+          "status": 302,
+          "location": "https://example.com/news"
+        }
+      ],
+      "found_at": "2026-03-04T09:00:08+00:00",
+      "description": "Internal link uses a temporary redirect",
+      "summary": "HTTP 302"
+    },
+    {
+      "code": "slow",
+      "severity": "info",
+      "fingerprint": "290a0b0c0d0e0f10",
+      "source_url": "https://example.com/",
+      "target_url": "https://example.com/reports/q1",
+      "final_url": null,
+      "status": 200,
+      "reason": "responded in 8412 ms (limit 5000 ms)",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Q1 report",
+      "redirect_chain": [],
+      "found_at": "2026-03-04T09:00:10+00:00",
+      "description": "Target is slower than the configured threshold",
+      "summary": "HTTP 200"
+    }
+  ],
+  "diff": {
+    "run_a": {
+      "id": 41,
+      "started_at": "2026-02-25T09:00:00+00:00"
+    },
+    "run_b": {
+      "id": 42,
+      "started_at": "2026-03-04T09:00:00+00:00"
+    },
+    "new": [
+      {
+        "code": "broken",
+        "severity": "error",
+        "fingerprint": "a1b2c3d4e5f60709",
+        "source_url": "https://example.com/",
+        "target_url": "https://example.com/shop/checkout",
+        "final_url": null,
+        "status": 500,
+        "reason": null,
+        "element": "a",
+        "attribute": "href",
+        "link_text": "Checkout",
+        "redirect_chain": [],
+        "found_at": "2026-03-04T09:00:02+00:00",
+        "description": "Target responded with a 4xx/5xx status",
+        "summary": "HTTP 500"
+      },
+      {
+        "code": "redirect_loop",
+        "severity": "error",
+        "fingerprint": "e5f60708090a0b0c",
+        "source_url": "https://example.com/forum",
+        "target_url": "https://example.com/forum/thread/7",
+        "final_url": null,
+        "status": 301,
+        "reason": "redirect loop: redirect loop back to https://example.com/forum/thread/7",
+        "element": "a",
+        "attribute": "href",
+        "link_text": null,
+        "redirect_chain": [
+          {
+            "url": "https://example.com/forum/thread/7",
+            "status": 301,
+            "location": "https://example.com/login"
+          },
+          {
+            "url": "https://example.com/login",
+            "status": 301,
+            "location": "https://example.com/forum/thread/7"
+          }
+        ],
+        "found_at": "2026-03-04T09:00:06+00:00",
+        "description": "Redirect chain loops back to a URL already seen",
+        "summary": "HTTP 301"
+      },
+      {
+        "code": "redirect_to_error",
+        "severity": "error",
+        "fingerprint": "d4e5f60708090a0b",
+        "source_url": "https://example.com/promo",
+        "target_url": "https://example.com/click/99",
+        "final_url": "https://partner.test/expired",
+        "status": 410,
+        "reason": "redirect chain ends in HTTP 410",
+        "element": "a",
+        "attribute": "href",
+        "link_text": "Summer sale",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/click/99",
+            "status": 302,
+            "location": "https://partner.test/go?x=1"
+          },
+          {
+            "url": "https://partner.test/go?x=1",
+            "status": 410,
+            "location": null
+          }
+        ],
+        "found_at": "2026-03-04T09:00:05+00:00",
+        "description": "Redirect chain ends in a 4xx/5xx status",
+        "summary": "HTTP 410"
+      },
+      {
+        "code": "unreachable",
+        "severity": "error",
+        "fingerprint": "b2c3d4e5f6070809",
+        "source_url": "https://example.com/about",
+        "target_url": "https://cdn.example.test/widgets.js",
+        "final_url": null,
+        "status": null,
+        "reason": "DNS failure: Name or service not known",
+        "element": "script",
+        "attribute": "src",
+        "link_text": null,
+        "redirect_chain": [],
+        "found_at": "2026-03-04T09:00:03+00:00",
+        "description": "Target could not be reached at all",
+        "summary": "DNS failure: Name or service not known"
+      },
+      {
+        "code": "missing_fragment",
+        "severity": "warning",
+        "fingerprint": "3a0b0c0d0e0f1011",
+        "source_url": "https://example.com/docs",
+        "target_url": "https://example.com/docs/api#authentication",
+        "final_url": "https://example.com/docs/api",
+        "status": null,
+        "reason": "no id or name 'authentication' on the target page",
+        "element": "a",
+        "attribute": "href",
+        "link_text": "Auth",
+        "redirect_chain": [],
+        "found_at": "2026-03-04T09:00:11+00:00",
+        "description": "The #fragment does not exist on the target page",
+        "summary": "no id or name 'authentication' on the target page"
+      },
+      {
+        "code": "mixed_content",
+        "severity": "warning",
+        "fingerprint": "18090a0b0c0d0e0f",
+        "source_url": "https://example.com/pricing",
+        "target_url": "http://cdn.example.com/banner.png",
+        "final_url": null,
+        "status": null,
+        "reason": "insecure http resource on an https page",
+        "element": "img",
+        "attribute": "src",
+        "link_text": "Banner",
+        "redirect_chain": [],
+        "found_at": "2026-03-04T09:00:09+00:00",
+        "description": "HTTP resource linked from an HTTPS page",
+        "summary": "insecure http resource on an https page"
+      },
+      {
+        "code": "redirect_chain",
+        "severity": "warning",
+        "fingerprint": "c3d4e5f60708090a",
+        "source_url": "https://example.com/legacy",
+        "target_url": "https://example.com/old/news",
+        "final_url": "https://example.com/news",
+        "status": 200,
+        "reason": "4 redirects, more than the limit of 3",
+        "element": "a",
+        "attribute": "href",
+        "link_text": "News",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/old/news",
+            "status": 301,
+            "location": "https://example.com/n1"
+          },
+          {
+            "url": "https://example.com/n1",
+            "status": 301,
+            "location": "https://example.com/n2"
+          },
+          {
+            "url": "https://example.com/n2",
+            "status": 301,
+            "location": "https://example.com/n3"
+          },
+          {
+            "url": "https://example.com/n3",
+            "status": 301,
+            "location": "https://example.com/news"
+          },
+          {
+            "url": "https://example.com/news",
+            "status": 200,
+            "location": null
+          }
+        ],
+        "found_at": "2026-03-04T09:00:04+00:00",
+        "description": "Too many redirects in the chain",
+        "summary": "HTTP 200"
+      },
+      {
+        "code": "redirect_http_downgrade",
+        "severity": "warning",
+        "fingerprint": "f60708090a0b0c0d",
+        "source_url": "https://example.com/secure",
+        "target_url": "https://example.com/login",
+        "final_url": "http://example.com/login",
+        "status": 200,
+        "reason": "https URL redirects down to http",
+        "element": "a",
+        "attribute": "href",
+        "link_text": "Log in",
+        "redirect_chain": [
+          {
+            "url": "https://example.com/login",
+            "status": 301,
+            "location": "http://example.com/login"
+          }
+        ],
+        "found_at": "2026-03-04T09:00:07+00:00",
+        "description": "HTTPS URL redirects down to HTTP",
+        "summary": "HTTP 200"
+      },
+      {
+        "code": "blocked_by_robots",
+        "severity": "info",
+        "fingerprint": "4b0c0d0e0f101112",
+        "source_url": "https://example.com/internal",
+        "target_url": "https://example.com/admin/users",
+        "final_url": null,
+        "status": null,
+        "reason": "robots.txt disallows Linkkeep for this URL, so it was not crawled or checked",
+        "element": "a",
+        "attribute": "href",
+        "link_text": null,
+        "redirect_chain": [],
+        "found_at": "2026-03-04T09:00:12+00:00",
+        "description": "robots.txt prevented Linkkeep from crawling this URL",
+        "summary": "robots.txt disallows Linkkeep for this URL, so it was not crawled or checked"
+      },
+      {
+        "code": "redirect_temporary_permanent_internal",
+        "severity": "info",
+        "fingerprint": "0708090a0b0c0d0e",
+        "source_url": "https://example.com/",
+        "target_url": "https://example.com/news-2024",
+        "final_url": "https://example.com/news",
+        "status": 302,
+        "reason": "HTTP 302 is temporary; a permanent internal link should use 301",
+        "element": "a",
+        "attribute": "href",
+        "link_text": null,
+        "redirect_chain": [
+          {
+            "url": "https://example.com/news-2024",
+            "status": 302,
+            "location": "https://example.com/news"
+          }
+        ],
+        "found_at": "2026-03-04T09:00:08+00:00",
+        "description": "Internal link uses a temporary redirect",
+        "summary": "HTTP 302"
+      },
+      {
+        "code": "slow",
+        "severity": "info",
+        "fingerprint": "290a0b0c0d0e0f10",
+        "source_url": "https://example.com/",
+        "target_url": "https://example.com/reports/q1",
+        "final_url": null,
+        "status": 200,
+        "reason": "responded in 8412 ms (limit 5000 ms)",
+        "element": "a",
+        "attribute": "href",
+        "link_text": "Q1 report",
+        "redirect_chain": [],
+        "found_at": "2026-03-04T09:00:10+00:00",
+        "description": "Target is slower than the configured threshold",
+        "summary": "HTTP 200"
+      }
+    ],
+    "fixed": [
+      {
+        "code": "broken",
+        "severity": "error",
+        "fingerprint": "5c0d0e0f10111213",
+        "source_url": "https://example.com/",
+        "target_url": "https://example.com/tmp/banner.html",
+        "final_url": null,
+        "status": 404,
+        "reason": null,
+        "element": "img",
+        "attribute": "src",
+        "link_text": "Banner",
+        "redirect_chain": [],
+        "found_at": "2026-02-25T09:00:01+00:00",
+        "description": "Target responded with a 4xx/5xx status",
+        "summary": "HTTP 404"
+      },
+      {
+        "code": "missing_fragment",
+        "severity": "warning",
+        "fingerprint": "6d0e0f1011121314",
+        "source_url": "https://example.com/docs",
+        "target_url": "https://example.com/docs/api#legacy",
+        "final_url": "https://example.com/docs/api",
+        "status": null,
+        "reason": "no id or name 'legacy' on the target page",
+        "element": "a",
+        "attribute": "href",
+        "link_text": null,
+        "redirect_chain": [],
+        "found_at": "2026-02-25T09:00:02+00:00",
+        "description": "The #fragment does not exist on the target page",
+        "summary": "no id or name 'legacy' on the target page"
+      }
+    ],
+    "persisting": [
+      {
+        "since": "2026-02-25T09:00:00+00:00",
+        "runs_seen": 4,
+        "issue": {
+          "code": "broken",
+          "severity": "error",
+          "fingerprint": "a1b2c3d4e5f60708",
+          "source_url": "https://example.com/blog/post-1",
+          "target_url": "https://example.com/docs/handbook.pdf",
+          "final_url": null,
+          "status": 404,
+          "reason": null,
+          "element": "a",
+          "attribute": "href",
+          "link_text": "Handbook",
+          "redirect_chain": [],
+          "found_at": "2026-03-04T09:00:01+00:00",
+          "description": "Target responded with a 4xx/5xx status",
+          "summary": "HTTP 404"
+        }
+      }
+    ],
+    "notes": []
+  },
+  "pages": [
+    {
+      "url": "https://example.com/",
+      "depth": 0,
+      "status": 200,
+      "final_url": "https://example.com/",
+      "duration_ms": 184,
+      "content_type": "text/html; charset=utf-8",
+      "size_bytes": 8123,
+      "error": null,
+      "crawlable": true,
+      "links_found": 14,
+      "links_checked": 12
+    },
+    {
+      "url": "https://example.com/blog/post-1",
+      "depth": 1,
+      "status": 200,
+      "final_url": "https://example.com/blog/post-1",
+      "duration_ms": 212,
+      "content_type": "text/html; charset=utf-8",
+      "size_bytes": 15230,
+      "error": null,
+      "crawlable": true,
+      "links_found": 9,
+      "links_checked": 9
+    },
+    {
+      "url": "https://example.com/docs/api",
+      "depth": 1,
+      "status": 200,
+      "final_url": "https://example.com/docs/api",
+      "duration_ms": 190,
+      "content_type": "text/html",
+      "size_bytes": 4021,
+      "error": null,
+      "crawlable": true,
+      "links_found": 3,
+      "links_checked": 3
+    },
+    {
+      "url": "https://example.com/docs/handbook.pdf",
+      "depth": 2,
+      "status": 404,
+      "final_url": "https://example.com/docs/handbook.pdf",
+      "duration_ms": 97,
+      "content_type": "text/html",
+      "size_bytes": 1200,
+      "error": null,
+      "crawlable": true,
+      "links_found": 0,
+      "links_checked": 0
+    },
+    {
+      "url": "https://example.com/pricing",
+      "depth": 1,
+      "status": 200,
+      "final_url": "https://example.com/pricing",
+      "duration_ms": 240,
+      "content_type": "text/html; charset=utf-8",
+      "size_bytes": 9012,
+      "error": null,
+      "crawlable": true,
+      "links_found": 6,
+      "links_checked": 6
+    },
+    {
+      "url": "https://example.com/admin/users",
+      "depth": 2,
+      "status": null,
+      "final_url": null,
+      "duration_ms": null,
+      "content_type": null,
+      "size_bytes": null,
+      "error": "not crawled: https://example.com/robots.txt disallows this path",
+      "crawlable": false,
+      "links_found": 0,
+      "links_checked": 0
+    }
+  ],
+  "links": [
+    {
+      "source_url": "https://example.com/",
+      "target_url": "https://example.com/shop/checkout",
+      "kind": "internal",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Checkout",
+      "final_url": "https://example.com/shop/checkout",
+      "status": 500,
+      "duration_ms": 301,
+      "error": null,
+      "scheme": "https",
+      "checked": true,
+      "redirect_chain": []
+    },
+    {
+      "source_url": "https://example.com/blog/post-1",
+      "target_url": "https://example.com/docs/handbook.pdf",
+      "kind": "internal",
+      "element": "a",
+      "attribute": "href",
+      "link_text": "Handbook",
+      "final_url": null,
+      "status": 404,
+      "duration_ms": 97,
+      "error": null,
+      "scheme": "https",
+      "checked": true,
+      "redirect_chain": []
+    },
+    {
+      "source_url": "https://example.com/about",
+      "target_url": "https://cdn.example.test/widgets.js",
+      "kind": "external",
+      "element": "script",
+      "attribute": "src",
+      "link_text": null,
+      "final_url": null,
+      "status": null,
+      "duration_ms": null,
+      "error": "dns: not known",
+      "scheme": "https",
+      "checked": true,
+      "redirect_chain": []
+    },
+    {
+      "source_url": "https://example.com/pricing",
+      "target_url": "http://cdn.example.com/banner.png",
+      "kind": "external",
+      "element": "img",
+      "attribute": "src",
+      "link_text": "Banner",
+      "final_url": null,
+      "status": 200,
+      "duration_ms": 88,
+      "error": null,
+      "scheme": "http",
+      "checked": true,
+      "redirect_chain": []
+    },
+    {
+      "source_url": "https://example.com/",
+      "target_url": "https://example.com/mailto-nope",
+      "kind": "internal",
+      "element": "a",
+      "attribute": "href",
+      "link_text": null,
+      "final_url": null,
+      "status": null,
+      "duration_ms": null,
+      "error": "excluded by pattern",
+      "scheme": "https",
+      "checked": false,
+      "redirect_chain": []
+    }
+  ]
+}

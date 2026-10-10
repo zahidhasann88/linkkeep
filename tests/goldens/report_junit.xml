@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="linkkeep https://example.com" tests="12" failures="9" skipped="3" errors="0" time="12.340" timestamp="2026-03-04T09:00:00+00:00">
+  <testsuite name="https://example.com/" tests="3" failures="1" skipped="2" errors="0" id="0" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.broken" name="https://example.com/shop/checkout" time="0" status="failure">
+      <failure message="error: broken - HTTP 500" type="broken">target:  https://example.com/shop/checkout
+source:  https://example.com/
+final:   -
+element: a href
+text:    Checkout
+fingerprint: a1b2c3d4e5f60709</failure>
+    </testcase>
+    <testcase classname="linkkeep.redirect_temporary_permanent_internal" name="https://example.com/news-2024" time="0" status="skipped">
+      <skipped message="info: redirect_temporary_permanent_internal - HTTP 302" type="redirect_temporary_permanent_internal">target:  https://example.com/news-2024
+source:  https://example.com/
+final:   https://example.com/news
+element: a href
+reason:  HTTP 302 is temporary; a permanent internal link should use 301
+fingerprint: 0708090a0b0c0d0e</skipped>
+    </testcase>
+    <testcase classname="linkkeep.slow" name="https://example.com/reports/q1" time="0" status="skipped">
+      <skipped message="info: slow - HTTP 200" type="slow">target:  https://example.com/reports/q1
+source:  https://example.com/
+final:   -
+element: a href
+text:    Q1 report
+reason:  responded in 8412 ms (limit 5000 ms)
+fingerprint: 290a0b0c0d0e0f10</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/about" tests="1" failures="1" skipped="0" errors="0" id="1" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.unreachable" name="https://cdn.example.test/widgets.js" time="0" status="failure">
+      <failure message="error: unreachable - DNS failure: Name or service not known" type="unreachable">target:  https://cdn.example.test/widgets.js
+source:  https://example.com/about
+final:   -
+element: script src
+reason:  DNS failure: Name or service not known
+fingerprint: b2c3d4e5f6070809</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/blog/post-1" tests="1" failures="1" skipped="0" errors="0" id="2" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.broken" name="https://example.com/docs/handbook.pdf" time="0" status="failure">
+      <failure message="error: broken - HTTP 404" type="broken">target:  https://example.com/docs/handbook.pdf
+source:  https://example.com/blog/post-1
+final:   -
+element: a href
+text:    Handbook
+fingerprint: a1b2c3d4e5f60708</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/docs" tests="1" failures="1" skipped="0" errors="0" id="3" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.missing_fragment" name="https://example.com/docs/api#authentication" time="0" status="failure">
+      <failure message="warning: missing_fragment - no id or name 'authentication' on the target page" type="missing_fragment">target:  https://example.com/docs/api#authentication
+source:  https://example.com/docs
+final:   https://example.com/docs/api
+element: a href
+text:    Auth
+reason:  no id or name 'authentication' on the target page
+fingerprint: 3a0b0c0d0e0f1011</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/forum" tests="1" failures="1" skipped="0" errors="0" id="4" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.redirect_loop" name="https://example.com/forum/thread/7" time="0" status="failure">
+      <failure message="error: redirect_loop - HTTP 301" type="redirect_loop">target:  https://example.com/forum/thread/7
+source:  https://example.com/forum
+final:   -
+element: a href
+reason:  redirect loop: redirect loop back to https://example.com/forum/thread/7
+chain: 301 https://example.com/forum/thread/7 -&gt; 301 https://example.com/login
+fingerprint: e5f60708090a0b0c</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/internal" tests="1" failures="0" skipped="1" errors="0" id="5" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.blocked_by_robots" name="https://example.com/admin/users" time="0" status="skipped">
+      <skipped message="info: blocked_by_robots - robots.txt disallows Linkkeep for this URL, so it was not crawled or checked" type="blocked_by_robots">target:  https://example.com/admin/users
+source:  https://example.com/internal
+final:   -
+element: a href
+reason:  robots.txt disallows Linkkeep for this URL, so it was not crawled or checked
+fingerprint: 4b0c0d0e0f101112</skipped>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/legacy" tests="1" failures="1" skipped="0" errors="0" id="6" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.redirect_chain" name="https://example.com/old/news" time="0" status="failure">
+      <failure message="warning: redirect_chain - HTTP 200" type="redirect_chain">target:  https://example.com/old/news
+source:  https://example.com/legacy
+final:   https://example.com/news
+element: a href
+text:    News
+reason:  4 redirects, more than the limit of 3
+chain: 301 https://example.com/old/news -&gt; 301 https://example.com/n1 -&gt; 301 https://example.com/n2 -&gt; 301 https://example.com/n3 -&gt; 200 https://example.com/news
+fingerprint: c3d4e5f60708090a</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/pricing" tests="1" failures="1" skipped="0" errors="0" id="7" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.mixed_content" name="http://cdn.example.com/banner.png" time="0" status="failure">
+      <failure message="warning: mixed_content - insecure http resource on an https page" type="mixed_content">target:  http://cdn.example.com/banner.png
+source:  https://example.com/pricing
+final:   -
+element: img src
+text:    Banner
+reason:  insecure http resource on an https page
+fingerprint: 18090a0b0c0d0e0f</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/promo" tests="1" failures="1" skipped="0" errors="0" id="8" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.redirect_to_error" name="https://example.com/click/99" time="0" status="failure">
+      <failure message="error: redirect_to_error - HTTP 410" type="redirect_to_error">target:  https://example.com/click/99
+source:  https://example.com/promo
+final:   https://partner.test/expired
+element: a href
+text:    Summer sale
+reason:  redirect chain ends in HTTP 410
+chain: 302 https://example.com/click/99 -&gt; 410 https://partner.test/go?x=1
+fingerprint: d4e5f60708090a0b</failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="https://example.com/secure" tests="1" failures="1" skipped="0" errors="0" id="9" package="https://example.com">
+    <properties>
+      <property name="linkkeep.run_id" value="42" />
+      <property name="linkkeep.status" value="completed" />
+      <property name="linkkeep.pages" value="6" />
+      <property name="linkkeep.links_checked" value="41" />
+    </properties>
+    <testcase classname="linkkeep.redirect_http_downgrade" name="https://example.com/login" time="0" status="failure">
+      <failure message="warning: redirect_http_downgrade - HTTP 200" type="redirect_http_downgrade">target:  https://example.com/login
+source:  https://example.com/secure
+final:   http://example.com/login
+element: a href
+text:    Log in
+reason:  https URL redirects down to http
+fingerprint: f60708090a0b0c0d</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

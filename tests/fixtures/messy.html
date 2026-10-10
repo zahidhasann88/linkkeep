@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!-- A deliberately messy document: unclosed tags, mixed quoting, entities, base href,
+     srcset, svg links, comments inside attributes and no closing </body>. -->
+<HTML>
+<head>
+  <title>Acme &amp; Co</title>
+  <BASE HREF="/deep/nested/">
+  <link rel=icon href=/img/favicon.ico>
+  <link rel="stylesheet" href="theme.css" />
+  <meta name="description" content="not a link">
+</head>
+<body>
+  <h1>Hello</h1>
+  <a href="one.html">One</a>
+  <a href='two.html'   >Two</a>
+  <a href=three.html >Three</a>
+  <A HREF="four.HTML">Uppercase tag</A>
+  <a href="five.html&hellip;">Five</a>
+  <a href=" " >Blank-ish</a>
+  <a href="">Empty</a>
+  <a href="#">Just a fragment</a>
+  <a href="#top">Top</a>
+  <a href="mailto:hello@acme.test?subject=Hi">Mail</a>
+  <a href="tel:+15550100">Call</a>
+  <a href="javascript:void(0)" onclick="x()">Js</a>
+  <a href="data:text/plain,hi">Data</a>
+  <a href="mailto:a@b.c">
+    <span>nested <b>markup</b> inside a link</span>
+  </a>
+  <div>
+    <a href="unclosed.html">Unclosed parent below
+    <ul><li><a href="../sibling.html">Sibling</a></li>
+  </div>
+  <img src="pic.png" alt="A pic">
+  <img src="no-alt.png">
+  <img src="http://cdn.test/x.png" srcset="http://cdn.test/x.png 1x,
+      http://cdn.test/x2.png 2x" alt="Responsive">
+  <img src="/abs.png">
+  <img data-src="lazy-only.png">
+  <script src="app.js"></script>
+  <script>var a = '<a href="/inside-script.html">no</a>';</script>
+  <script type="module" src="./module.js"></script>
+  <iframe src="widget.html"></iframe>
+  <iframe src="https://embed.test/e"></iframe>
+  <picture>
+    <source srcset="wide.avif 2x" type="image/avif">
+    <source src="narrow.jpg">
+    <img src="fallback.jpg" alt="f">
+  </picture>
+  <svg><a href="https://svg.test/shape"><circle r="5"/></a></svg>
+  <a href="relative/with-dot/../resolved.html">Dot segments</a>
+  <a href="query.html?a=1&b=2#frag">Query and fragment</a>
+  <a href="https://xn--bcher-kva.test/idn">IDN host</a>
+  <a href="https://site.test:443/default-port">Default port</a>
+  <a href="//protocol.relative/x">Protocol relative</a>
+  <!-- <a href="/commented-out.html">not a link</a> -->
+  <noscript><a href="/noscript.html">No script fallback</a></noscript>
+  <template><a href="/template.html">in a template</a></template>
+  <a id="anchor-with-id">Anchor target</a>
+  <a name="legacy-anchor">Legacy target</a>
+  <div id="section-2">Section</div>
